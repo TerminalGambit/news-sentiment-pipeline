@@ -1,4 +1,4 @@
-.PHONY: install clean test run lint format help report report-cache setup-latex web web-install finbert
+.PHONY: install clean test run lint format help report report-cache setup-latex web web-install finbert open-web
 
 # Python version
 PYTHON := ./venv/bin/python3.10
@@ -28,6 +28,7 @@ help:
 	@echo "  make web-install - Install web dependencies"
 	@echo "  make web        - Start web interface"
 	@echo "  make finbert    - Run the FinBERT playground web app"
+	@echo "  make open-web   - Open the web app in the default browser"
 
 install:
 	@echo "Installing dependencies..."
@@ -35,6 +36,7 @@ install:
 	$(PIP) install feedparser beautifulsoup4 transformers torch pandas numpy python-dotenv requests tqdm
 	$(PIP) install black pylint pytest pytest-cov
 	$(PIP) install jinja2 matplotlib seaborn
+	$(PIP) install yfinance
 
 clean:
 	@echo "Cleaning up..."
@@ -97,6 +99,7 @@ update:
 	$(PIP) install --upgrade feedparser beautifulsoup4 transformers torch pandas numpy python-dotenv requests tqdm
 	$(PIP) install --upgrade black pylint pytest pytest-cov
 	$(PIP) install --upgrade jinja2 matplotlib seaborn
+	$(PIP) install --upgrade yfinance
 
 # Report generation
 report:
@@ -141,4 +144,7 @@ prelint:
 	black $(SRC_DIR)
 	black --check $(SRC_DIR)
 	isort --check-only $(SRC_DIR)
-	pylint $(SRC_DIR) 
+	pylint $(SRC_DIR)
+
+open-web:
+	open http://127.0.0.1:5000/ 

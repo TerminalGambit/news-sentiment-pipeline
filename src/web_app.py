@@ -12,6 +12,12 @@ from flask import Flask, jsonify, render_template
 from .config import DATA_DIR
 from .report_generator import ReportGenerator
 from .storage import DataStorage
+from .market_data_pipeline import fetch_market_data, get_market_dataframe
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import io
+import base64
 
 app = Flask(__name__)
 
@@ -49,10 +55,10 @@ def view_report(date: str):
     if not os.path.exists(report_dir):
         return "Report not found", 404
 
-    # Load report data
-    cache_file = os.path.join(DATA_DIR, "cache", f"results_{date}.json")
-    if os.path.exists(cache_file):
-        with open(cache_file, "r", encoding="utf-8") as f:
+    # Load report data from main results file
+    results_file = os.path.join(DATA_DIR, "sentiment_results.json")
+    if os.path.exists(results_file):
+        with open(results_file, "r", encoding="utf-8") as f:
             results = json.load(f)
     else:
         results = []
@@ -126,6 +132,58 @@ def get_top_articles(
         key=lambda x: x["sentiment"]["score"],
         reverse=True,
     )[:limit]
+
+
+@app.route("/report/<date>/positive")
+def see_all_positive(date: str):
+    results_file = os.path.join(DATA_DIR, "sentiment_results.json")
+    if os.path.exists(results_file):
+        with open(results_file, "r", encoding="utf-8") as f:
+            results = json.load(f)
+    else:
+        results = []
+    positive_articles = [r for r in results if r["sentiment"]["label"] == "Positive"]
+    positive_articles = sorted(positive_articles, key=lambda x: x["sentiment"]["score"], reverse=True)
+    return render_template("see_all_positive.html", date=date, articles=positive_articles)
+
+
+@app.route("/report/<date>/negative")
+def see_all_negative(date: str):
+    results_file = os.path.join(DATA_DIR, "sentiment_results.json")
+    if os.path.exists(results_file):
+        with open(results_file, "r", encoding="utf-8") as f:
+            results = json.load(f)
+    else:
+        results = []
+    negative_articles = [r for r in results if r["sentiment"]["label"] == "Negative"]
+    negative_articles = sorted(negative_articles, key=lambda x: x["sentiment"]["score"], reverse=True)
+    return render_template("see_all_negative.html", date=date, articles=negative_articles)
+
+
+@app.route("/market/<ticker>")
+def market_overview(ticker):
+    data = fetch_market_data(ticker)
+    error = data.get("error")
+    info = data.get("info")
+    df = get_market_dataframe(data)
+    price_data = None
+    if not error and not df.empty:
+        price_data = {
+            "dates": df["Date"].tolist(),
+            "close": df["Close"].tolist(),
+            "open": df["Open"].tolist(),
+            "high": df["High"].tolist(),
+            "low": df["Low"].tolist(),
+            "volume": df["Volume"].tolist(),
+        }
+    return render_template(
+        "market_overview.html",
+        ticker=ticker,
+        info=info,
+        error=error,
+        price_data=price_data,
+        df=df.to_dict(orient="records") if not df.empty else None
+    )
 
 
 def run_web_app(host: str = "127.0.0.1", port: int = 5000, debug: bool = True):

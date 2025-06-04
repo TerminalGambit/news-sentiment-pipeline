@@ -49,6 +49,9 @@
                     </a>
                     {% endfor %}
                 </div>
+                <div class="mt-2 text-end">
+                    <a href="{{ url_for('see_all_positive', date=report.date) }}" class="btn btn-outline-primary btn-sm">See All</a>
+                </div>
             </div>
         </div>
     </div>
@@ -66,6 +69,9 @@
                         <small class="text-muted">Published: {{ article.published }}</small>
                     </a>
                     {% endfor %}
+                </div>
+                <div class="mt-2 text-end">
+                    <a href="{{ url_for('see_all_negative', date=report.date) }}" class="btn btn-outline-danger btn-sm">See All</a>
                 </div>
             </div>
         </div>

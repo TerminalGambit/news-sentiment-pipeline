@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Market Overview - {{ ticker }}{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Market Overview: {{ info.longName if info else ticker }}</h2>
+{% if error %}
+    <div class="alert alert-danger">Error fetching data: {{ error }}</div>
+{% else %}
+    <div class="mb-3">
+        <strong>Ticker:</strong> {{ ticker }}<br>
+        {% if info %}
+            <strong>Exchange:</strong> {{ info.exchange }}<br>
+            <strong>Sector:</strong> {{ info.sector }}<br>
+            <strong>Industry:</strong> {{ info.industry }}<br>
+            <strong>Description:</strong> {{ info.longBusinessSummary }}<br>
+        {% endif %}
+    </div>
+    {% if price_data %}
+        <div id="priceChart" style="height:400px;"></div>
+    {% endif %}
+    {% if df %}
+        <h5>Recent Prices</h5>
+        <div class="table-responsive">
+            <table class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Open</th>
+                        <th>High</th>
+                        <th>Low</th>
+                        <th>Close</th>
+                        <th>Volume</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in df[:10] %}
+                    <tr>
+                        <td>{{ row.Date }}</td>
+                        <td>{{ row.Open }}</td>
+                        <td>{{ row.High }}</td>
+                        <td>{{ row.Low }}</td>
+                        <td>{{ row.Close }}</td>
+                        <td>{{ row.Volume }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% if price_data %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    const priceData = {{ price_data|tojson }};
+    const trace = {
+        x: priceData.dates,
+        y: priceData.close,
+        type: 'scatter',
+        mode: 'lines',
+        name: 'Close Price',
+        line: {color: '#007bff'}
+    };
+    const layout = {
+        title: 'Stock Price (1y)',
+        xaxis: {title: 'Date'},
+        yaxis: {title: 'Price (USD)'},
+        margin: {t: 40}
+    };
+    Plotly.newPlot('priceChart', [trace], layout, {responsive: true});
+</script>
+{% endif %}
+{% endblock %} 

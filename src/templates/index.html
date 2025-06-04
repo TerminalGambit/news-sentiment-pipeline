@@ -5,6 +5,18 @@
 {% block content %}
 <h1 class="mb-4">Available Reports</h1>
 
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card h-100 shadow">
+            <div class="card-body">
+                <h4 class="card-title">Learn More About NVIDIA</h4>
+                <p class="card-text">Explore a detailed market overview, company info, and price trends for NVIDIA (NVDA).</p>
+                <a href="{{ url_for('market_overview', ticker='NVDA') }}" class="btn btn-success">View NVIDIA Market Overview</a>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% if reports %}
     <div class="row row-cols-1 row-cols-md-3 g-4">
         {% for date in reports %}

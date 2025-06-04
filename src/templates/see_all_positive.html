@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}All Positive Articles - {{ date }}{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">All Positive Articles for {{ date }}</h2>
+<a href="{{ url_for('view_report', date=date) }}" class="btn btn-secondary mb-3">Back to Report</a>
+<div class="list-group">
+    {% for article in articles %}
+    <a href="{{ article.link }}" class="list-group-item list-group-item-action" target="_blank">
+        <div class="d-flex w-100 justify-content-between">
+            <h6 class="mb-1">{{ article.title }}</h6>
+            <small>Score: {{ "%.3f"|format(article.sentiment.score) }}</small>
+        </div>
+        <small class="text-muted">Published: {{ article.published }}</small>
+    </a>
+    {% endfor %}
+</div>
+{% endblock %} 
