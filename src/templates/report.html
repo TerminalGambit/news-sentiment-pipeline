@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Report {{ report.date }} - Financial News Sentiment Analysis{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1>Report for {{ report.date }}</h1>
+        <p class="lead">Analysis of {{ report.total_articles }} articles from {{ report.sources|length }} sources</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Sentiment Distribution</h5>
+                <div class="chart-container">
+                    <canvas id="sentimentChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Source-wise Analysis</h5>
+                <div class="chart-container">
+                    <canvas id="sourceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Most Positive Articles</h5>
+                <div class="list-group">
+                    {% for article in report.top_positive %}
+                    <a href="{{ article.link }}" class="list-group-item list-group-item-action" target="_blank">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ article.title }}</h6>
+                            <small>Score: {{ "%.2f"|format(article.sentiment.score) }}</small>
+                        </div>
+                        <small class="text-muted">Published: {{ article.published }}</small>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Most Negative Articles</h5>
+                <div class="list-group">
+                    {% for article in report.top_negative %}
+                    <a href="{{ article.link }}" class="list-group-item list-group-item-action" target="_blank">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ article.title }}</h6>
+                            <small>Score: {{ "%.2f"|format(article.sentiment.score) }}</small>
+                        </div>
+                        <small class="text-muted">Published: {{ article.published }}</small>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Sentiment Distribution Chart
+    const sentimentCtx = document.getElementById('sentimentChart').getContext('2d');
+    new Chart(sentimentCtx, {
+        type: 'pie',
+        data: {
+            labels: Object.keys({{ report.sentiment_distribution|tojson }}),
+            datasets: [{
+                data: Object.values({{ report.sentiment_distribution|tojson }}),
+                backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Source-wise Analysis Chart
+    const sourceCtx = document.getElementById('sourceChart').getContext('2d');
+    const sourceData = {{ report.source_stats|tojson }};
+    const sources = Object.keys(sourceData);
+    const positiveData = sources.map(s => sourceData[s].positive);
+    const neutralData = sources.map(s => sourceData[s].neutral);
+    const negativeData = sources.map(s => sourceData[s].negative);
+
+    new Chart(sourceCtx, {
+        type: 'bar',
+        data: {
+            labels: sources,
+            datasets: [
+                {
+                    label: 'Positive',
+                    data: positiveData,
+                    backgroundColor: '#28a745'
+                },
+                {
+                    label: 'Neutral',
+                    data: neutralData,
+                    backgroundColor: '#ffc107'
+                },
+                {
+                    label: 'Negative',
+                    data: negativeData,
+                    backgroundColor: '#dc3545'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    stacked: true
+                },
+                y: {
+                    stacked: true
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %} 

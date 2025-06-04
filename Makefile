@@ -1,4 +1,4 @@
-.PHONY: install clean test run lint format help
+.PHONY: install clean test run lint format help report report-cache setup-latex web web-install
 
 # Python version
 PYTHON := python3
@@ -8,6 +8,7 @@ PIP := pip3
 SRC_DIR := src
 DATA_DIR := data
 TEST_DIR := tests
+SCRIPTS_DIR := scripts
 
 # Default target
 .DEFAULT_GOAL := help
@@ -20,13 +21,19 @@ help:
 	@echo "  make run        - Run the sentiment analysis pipeline"
 	@echo "  make lint       - Run linting checks"
 	@echo "  make format     - Format code using black"
+	@echo "  make report     - Generate report from latest analysis"
+	@echo "  make report-cache DATE=YYYY-MM-DD - Generate report from cached data"
+	@echo "  make setup-latex - Check and install required LaTeX packages"
 	@echo "  make help       - Show this help message"
+	@echo "  make web-install - Install web dependencies"
+	@echo "  make web        - Start web interface"
 
 install:
 	@echo "Installing dependencies..."
 	$(PIP) install --upgrade pip
 	$(PIP) install feedparser beautifulsoup4 transformers torch pandas numpy python-dotenv requests tqdm
 	$(PIP) install black pylint pytest pytest-cov
+	$(PIP) install jinja2 matplotlib seaborn
 
 clean:
 	@echo "Cleaning up..."
@@ -62,6 +69,7 @@ setup:
 	@echo "Setting up project structure..."
 	mkdir -p $(DATA_DIR)
 	mkdir -p $(TEST_DIR)
+	mkdir -p $(SCRIPTS_DIR)
 
 # Development environment setup
 dev: setup install
@@ -77,4 +85,39 @@ venv:
 update:
 	@echo "Updating dependencies..."
 	$(PIP) install --upgrade feedparser beautifulsoup4 transformers torch pandas numpy python-dotenv requests tqdm
-	$(PIP) install --upgrade black pylint pytest pytest-cov 
+	$(PIP) install --upgrade black pylint pytest pytest-cov
+	$(PIP) install --upgrade jinja2 matplotlib seaborn
+
+# Report generation
+report:
+	@echo "Generating report from latest analysis..."
+	python3 -c "from src.report_generator import ReportGenerator; from src.storage import DataStorage; storage = DataStorage(); results = storage.load_from_json(); generator = ReportGenerator(); path = generator.generate_report(results); print(path)" > .last_report_path.tmp
+	REPORT_PATH=$$(tail -n 1 .last_report_path.tmp | grep -o 'data/reports/[^ ]*report.pdf' || true); \
+	if [ -z "$$REPORT_PATH" ]; then \
+		echo "[ERROR] Report PDF path not found. Check logs for errors."; \
+		exit 1; \
+	else \
+		echo "Opening report: $$REPORT_PATH"; \
+		open "$$REPORT_PATH"; \
+	fi
+
+report-cache:
+	@if [ -z "$(DATE)" ]; then \
+		echo "Error: DATE parameter is required. Usage: make report-cache DATE=YYYY-MM-DD"; \
+		exit 1; \
+	fi
+	@echo "Generating report from cached data for $(DATE)..."
+	$(PYTHON) -c "from src.report_generator import generate_report_from_cache; generate_report_from_cache('$(DATE)')"
+
+# LaTeX setup
+setup-latex:
+	@echo "Checking and installing LaTeX packages..."
+	$(PYTHON) $(SCRIPTS_DIR)/check_latex.py
+
+web-install:
+	@echo "Installing web dependencies..."
+	$(PIP) install flask
+
+web:
+	@echo "Starting web interface..."
+	$(PYTHON) -c "from src.web_app import run_web_app; run_web_app()" 

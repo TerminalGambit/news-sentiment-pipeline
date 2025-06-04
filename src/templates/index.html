@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Available Reports - Financial News Sentiment Analysis{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Available Reports</h1>
+
+{% if reports %}
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for date in reports %}
+        <div class="col">
+            <div class="card report-card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ date }}</h5>
+                    <p class="card-text">
+                        <a href="{{ url_for('view_report', date=date) }}" class="btn btn-primary">View Report</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        No reports available. Run the sentiment analysis pipeline to generate reports.
+    </div>
+{% endif %}
+{% endblock %} 
