@@ -2,36 +2,40 @@
 Report generation module for creating LaTeX reports from sentiment analysis results.
 """
 
-import os
 import json
 import logging
-from typing import List, Dict, Any, Optional
+import os
+import subprocess
 from datetime import datetime, timedelta
-import pandas as pd
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 import matplotlib.pyplot as plt
+import pandas as pd
 import seaborn as sns
 from jinja2 import Environment, FileSystemLoader
-import subprocess
-from pathlib import Path
 
 from .config import DATA_DIR
 
 logger = logging.getLogger(__name__)
 
+
 class ReportGenerator:
+    """Class for generating LaTeX and PDF reports from sentiment analysis results."""
+
     def __init__(self):
         """Initialize the report generator with necessary directories."""
         self.report_dir = os.path.join(DATA_DIR, "reports")
         self.cache_dir = os.path.join(DATA_DIR, "cache")
         self.template_dir = os.path.join(DATA_DIR, "templates")
-        
+
         # Create necessary directories
         for directory in [self.report_dir, self.cache_dir, self.template_dir]:
             os.makedirs(directory, exist_ok=True)
-            
+
         # Initialize Jinja2 environment
         self.env = Environment(loader=FileSystemLoader(self.template_dir))
-        
+
         # Create LaTeX template if it doesn't exist
         self._create_latex_template()
 
@@ -140,112 +144,114 @@ This report uses the FinBERT model, a specialized BERT model trained on financia
 
 \end{document}
 """
-            with open(template_path, 'w') as f:
+            with open(template_path, "w", encoding="utf-8") as f:
                 f.write(template)
 
     def _get_cached_results(self, date: str) -> Optional[List[Dict[str, Any]]]:
         """
         Get cached results for a specific date.
-        
+
         Args:
             date (str): Date in YYYY-MM-DD format
-            
+
         Returns:
             Optional[List[Dict[str, Any]]]: Cached results or None if not found
         """
         cache_file = os.path.join(self.cache_dir, f"results_{date}.json")
         if os.path.exists(cache_file):
             try:
-                with open(cache_file, 'r') as f:
+                with open(cache_file, "r", encoding="utf-8") as f:
                     return json.load(f)
-            except Exception as e:
-                logger.error(f"Error reading cache file: {str(e)}")
+            except Exception as e:  # pylint: disable=broad-except
+                logger.error("Error reading cache file: %s", str(e))
         return None
 
     def _cache_results(self, results: List[Dict[str, Any]], date: str):
         """
         Cache results for a specific date.
-        
+
         Args:
             results (List[Dict[str, Any]]): Results to cache
             date (str): Date in YYYY-MM-DD format
         """
         cache_file = os.path.join(self.cache_dir, f"results_{date}.json")
         try:
-            with open(cache_file, 'w') as f:
+            with open(cache_file, "w", encoding="utf-8") as f:
                 json.dump(results, f, indent=2)
-        except Exception as e:
-            logger.error(f"Error writing cache file: {str(e)}")
+        except Exception as e:  # pylint: disable=broad-except
+            logger.error("Error writing cache file: %s", str(e))
 
     def _generate_visualizations(self, results: List[Dict[str, Any]], report_dir: str):
         """
         Generate visualizations for the report.
-        
+
         Args:
             results (List[Dict[str, Any]]): Analysis results
             report_dir (str): Directory to save visualizations
         """
         # Convert to DataFrame
         df = pd.DataFrame(results)
-        
+
         # Set style
-        plt.style.use('seaborn-v0_8')
+        plt.style.use("seaborn-v0_8")
         sns.set_palette("husl")
-        
+
         # Sentiment distribution pie chart
         plt.figure(figsize=(10, 6))
-        sentiment_counts = df['sentiment'].apply(lambda x: x['label']).value_counts()
-        plt.pie(sentiment_counts, labels=sentiment_counts.index, autopct='%1.1f%%', startangle=90)
-        plt.title('Sentiment Distribution')
-        plt.axis('equal')
+        sentiment_counts = df["sentiment"].apply(lambda x: x["label"]).value_counts()
+        plt.pie(sentiment_counts, labels=sentiment_counts.index, autopct="%1.1f%%", startangle=90)
+        plt.title("Sentiment Distribution")
+        plt.axis("equal")
         plt.tight_layout()
-        plt.savefig(os.path.join(report_dir, 'sentiment_distribution.png'), dpi=300, bbox_inches='tight')
+        plt.savefig(
+            os.path.join(report_dir, "sentiment_distribution.png"), dpi=300, bbox_inches="tight"
+        )
         plt.close()
-        
+
         # Source-wise analysis with average sentiment scores
         plt.figure(figsize=(12, 6))
-        source_sentiment = pd.crosstab(df['source'], df['sentiment'].apply(lambda x: x['label']))
-        source_sentiment.plot(kind='bar', stacked=True)
-        plt.title('Sentiment Distribution by Source')
-        plt.xlabel('Source')
-        plt.ylabel('Count')
-        plt.legend(title='Sentiment')
-        plt.xticks(rotation=45, ha='right')
+        source_sentiment = pd.crosstab(df["source"], df["sentiment"].apply(lambda x: x["label"]))
+        source_sentiment.plot(kind="bar", stacked=True)
+        plt.title("Sentiment Distribution by Source")
+        plt.xlabel("Source")
+        plt.ylabel("Count")
+        plt.legend(title="Sentiment")
+        plt.xticks(rotation=45, ha="right")
         plt.tight_layout()
-        plt.savefig(os.path.join(report_dir, 'source_analysis.png'), dpi=300, bbox_inches='tight')
+        plt.savefig(os.path.join(report_dir, "source_analysis.png"), dpi=300, bbox_inches="tight")
         plt.close()
 
     def _format_article_title(self, title: str) -> str:
         """
         Format article title by fixing common issues.
-        
+
         Args:
             title (str): Original article title
-            
+
         Returns:
             str: Formatted title
         """
         # Fix common issues
-        title = title.replace('ondeliverygrowth', ' on delivery growth')
-        title = title.replace('to 28', 'to 28%')
-        title = title.replace('Housing starts fall 14.8', 'Housing starts fall 14.8%')
-        
+        title = title.replace("ondeliverygrowth", " on delivery growth")
+        title = title.replace("to 28", "to 28%")
+        title = title.replace("Housing starts fall 14.8", "Housing starts fall 14.8%")
+
         # Add spaces after commas
-        title = title.replace(',', ', ')
-        
+        title = title.replace(",", ", ")
+
         # Remove multiple spaces
-        title = ' '.join(title.split())
-        
+        title = " ".join(title.split())
+
         return title
 
     def generate_report(self, results: List[Dict[str, Any]], date: Optional[str] = None) -> str:
         """
         Generate a LaTeX report from the analysis results.
-        
+
         Args:
             results (List[Dict[str, Any]]): Analysis results
             date (Optional[str]): Date for the report (defaults to today)
-            
+
         Returns:
             str: Path to the generated PDF report
         """
@@ -253,161 +259,164 @@ This report uses the FinBERT model, a specialized BERT model trained on financia
             # Set date
             if date is None:
                 date = datetime.now().strftime("%Y-%m-%d")
-                
+
             # Create report directory
             report_dir = os.path.join(self.report_dir, date)
             os.makedirs(report_dir, exist_ok=True)
-            
+
             # Generate visualizations
             self._generate_visualizations(results, report_dir)
-            
+
             # Format article titles
             for article in results:
-                article['title'] = self._format_article_title(article['title'])
-            
+                article["title"] = self._format_article_title(article["title"])
+
             # Prepare template data
             template_data = {
-                'date': date,
-                'total_articles': len(results),
-                'time_period': f"Last 24 hours until {date}",
-                'sources': sorted(set(article['source'] for article in results)),
-                'source_stats': self._calculate_source_stats(results),
-                'top_positive': sorted(
+                "date": date,
+                "total_articles": len(results),
+                "time_period": f"Last 24 hours until {date}",
+                "sources": sorted(set(article["source"] for article in results)),
+                "source_stats": self._calculate_source_stats(results),
+                "top_positive": sorted(
                     results,
-                    key=lambda x: x['sentiment']['score'] if x['sentiment']['label'] == 'Positive' else 0,
-                    reverse=True
+                    key=lambda x: (
+                        x["sentiment"]["score"] if x["sentiment"]["label"] == "Positive" else 0
+                    ),
+                    reverse=True,
                 )[:5],
-                'top_negative': sorted(
+                "top_negative": sorted(
                     results,
-                    key=lambda x: x['sentiment']['score'] if x['sentiment']['label'] == 'Negative' else 0,
-                    reverse=True
+                    key=lambda x: (
+                        x["sentiment"]["score"] if x["sentiment"]["label"] == "Negative" else 0
+                    ),
+                    reverse=True,
                 )[:5],
-                'overall_sentiment': self._calculate_overall_sentiment(results),
-                'interpretation': self._generate_interpretation(results)
+                "overall_sentiment": self._calculate_overall_sentiment(results),
+                "interpretation": self._generate_interpretation(results),
             }
-            
+
             # Render template
             template = self.env.get_template("report_template.tex")
             latex_content = template.render(**template_data)
-            
+
             # Write LaTeX file
             tex_file = os.path.join(report_dir, "report.tex")
-            with open(tex_file, 'w') as f:
+            with open(tex_file, "w", encoding="utf-8") as f:
                 f.write(latex_content)
-                
+
             # Compile LaTeX to PDF with errors logged to a file
             log_file = os.path.join(report_dir, "report.log")
-            with open(log_file, 'w') as f:
-                subprocess.run(['pdflatex', '-interaction=nonstopmode', '-output-directory', report_dir, tex_file], stdout=f, stderr=f)
-            
+            with open(log_file, "w", encoding="utf-8") as f:
+                subprocess.run(
+                    [
+                        "pdflatex",
+                        "-interaction=nonstopmode",
+                        "-output-directory",
+                        report_dir,
+                        tex_file,
+                    ],
+                    stdout=f,
+                    stderr=f,
+                    check=True,
+                )
+
             # Cache results
             self._cache_results(results, date)
-            
+
             # Return path to PDF
             pdf_path = os.path.join(report_dir, "report.pdf")
-            logger.info(f"Report generated successfully: {pdf_path}")
+            logger.info("Report generated successfully: %s", pdf_path)
             return pdf_path
-            
-        except Exception as e:
-            logger.error(f"Error generating report: {str(e)}")
+
+        except Exception as e:  # pylint: disable=broad-except
+            logger.error("Error generating report: %s", str(e))
             raise
 
     def _calculate_source_stats(self, results: List[Dict[str, Any]]) -> Dict[str, Dict[str, int]]:
         """
         Calculate sentiment statistics by source.
-        
+
         Args:
             results (List[Dict[str, Any]]): Analysis results
-            
+
         Returns:
             Dict[str, Dict[str, int]]: Statistics by source
         """
         stats = {}
         for article in results:
-            source = article['source']
-            sentiment = article['sentiment']['label']
-            
+            source = article["source"]
+            sentiment = article["sentiment"]["label"]
+
             if source not in stats:
-                stats[source] = {'positive': 0, 'neutral': 0, 'negative': 0}
-                
+                stats[source] = {"positive": 0, "neutral": 0, "negative": 0}
+
             stats[source][sentiment.lower()] += 1
-            
+
         return stats
 
     def _calculate_overall_sentiment(self, results: List[Dict[str, Any]]) -> str:
         """
         Calculate the overall sentiment based on the majority sentiment label.
-        
+
         Args:
             results (List[Dict[str, Any]]): Analysis results
-            
+
         Returns:
             str: Overall sentiment label
         """
         sentiment_counts = {}
         for result in results:
-            label = result['sentiment']['label']
+            label = result["sentiment"]["label"]
             sentiment_counts[label] = sentiment_counts.get(label, 0) + 1
         return max(sentiment_counts.items(), key=lambda x: x[1])[0]
 
     def _generate_interpretation(self, results: List[Dict[str, Any]]) -> str:
         """
         Generate a brief interpretation of the sentiment analysis results.
-        
-        Args:
-            results (List[Dict[str, Any]]): Analysis results
-            
-        Returns:
-            str: Interpretation text
         """
         sentiment_counts = {}
         source_sentiment = {}
-        
         for result in results:
-            label = result['sentiment']['label']
-            source = result['source']
-            
-            # Count overall sentiment
+            label = result["sentiment"]["label"]
+            source = result["source"]
             sentiment_counts[label] = sentiment_counts.get(label, 0) + 1
-            
-            # Track source-specific sentiment
             if source not in source_sentiment:
-                source_sentiment[source] = {'positive': 0, 'neutral': 0, 'negative': 0}
+                source_sentiment[source] = {"positive": 0, "neutral": 0, "negative": 0}
             source_sentiment[source][label.lower()] += 1
-        
         total = len(results)
-        positive = sentiment_counts.get('Positive', 0)
-        neutral = sentiment_counts.get('Neutral', 0)
-        negative = sentiment_counts.get('Negative', 0)
-        
-        # Find source with most negative sentiment
-        most_negative_source = max(
-            source_sentiment.items(),
-            key=lambda x: x[1]['negative'] / sum(x[1].values())
-        )[0]
-        
-        return f"Out of {total} articles analyzed, sentiment was generally neutral to slightly negative, with {most_negative_source} showing the most negative tone overall."
+        if source_sentiment:
+            most_negative_source = max(
+                source_sentiment.items(), key=lambda x: x[1]["negative"] / sum(x[1].values())
+            )[0]
+        else:
+            most_negative_source = "N/A"
+        return (
+            f"Out of {total} articles analyzed, sentiment was generally neutral to slightly negative, "
+            f"with {most_negative_source} showing the most negative tone overall."
+        )
+
 
 def generate_report_from_cache(date: str) -> Optional[str]:
     """
     Generate a report from cached results for a specific date.
-    
+
     Args:
         date (str): Date in YYYY-MM-DD format
-        
+
     Returns:
         Optional[str]: Path to the generated PDF report or None if failed
     """
     try:
         generator = ReportGenerator()
         cached_results = generator._get_cached_results(date)
-        
+
         if cached_results is None:
             logger.warning(f"No cached results found for date: {date}")
             return None
-            
+
         return generator.generate_report(cached_results, date)
-        
-    except Exception as e:
-        logger.error(f"Error generating report from cache: {str(e)}")
-        return None 
+
+    except Exception as e:  # pylint: disable=broad-except
+        logger.error("Error generating report from cache: %s", str(e))
+        return None

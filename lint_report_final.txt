@@ -1,0 +1,28 @@
+************* Module src.config
+src/config.py:38:0: C0301: Line too long (130/100) (line-too-long)
+************* Module src.text_processor
+src/text_processor.py:70:11: W0718: Catching too general exception Exception (broad-exception-caught)
+src/text_processor.py:71:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/text_processor.py:181:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+************* Module src.report_generator
+src/report_generator.py:395:0: C0301: Line too long (103/100) (line-too-long)
+src/report_generator.py:23:0: R0903: Too few public methods (1/2) (too-few-public-methods)
+src/report_generator.py:412:25: W0212: Access to a protected member _get_cached_results of a client class (protected-access)
+src/report_generator.py:415:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/report_generator.py:9:0: W0611: Unused timedelta imported from datetime (unused-import)
+src/report_generator.py:10:0: W0611: Unused Path imported from pathlib (unused-import)
+************* Module src.pipeline
+src/pipeline.py:44:0: C0301: Line too long (111/100) (line-too-long)
+src/pipeline.py:69:15: W0718: Catching too general exception Exception (broad-exception-caught)
+src/pipeline.py:22:0: R0903: Too few public methods (1/2) (too-few-public-methods)
+************* Module src.news_ingestion
+src/news_ingestion.py:26:0: R0903: Too few public methods (1/2) (too-few-public-methods)
+src/news_ingestion.py:84:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/news_ingestion.py:142:4: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/news_ingestion.py:166:4: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+************* Module src.sentiment_analyzer
+src/sentiment_analyzer.py:61:15: W0718: Catching too general exception Exception (broad-exception-caught)
+
+------------------------------------------------------------------
+Your code has been rated at 9.65/10 (previous run: 9.12/10, +0.53)
+
