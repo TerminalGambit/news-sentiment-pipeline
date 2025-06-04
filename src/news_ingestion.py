@@ -81,7 +81,9 @@ class NewsFetcher:
 
             feed = feedparser.parse(response.content)
             if feed.bozo:
-                logger.warning(f"Feed parsing issues for {feed_url}: {feed.bozo_exception}")
+                logger.warning(
+                    f"Feed parsing issues for {feed_url}: {feed.bozo_exception}"
+                )
 
             return feed
 
@@ -92,7 +94,9 @@ class NewsFetcher:
             logger.error("Unexpected error fetching feed %s: %s", feed_url, str(e))
             return None
 
-    def process_feed(self, feed: feedparser.FeedParserDict, source: str) -> List[Dict[str, Any]]:
+    def process_feed(
+        self, feed: feedparser.FeedParserDict, source: str
+    ) -> List[Dict[str, Any]]:
         """
         Process a feed and extract articles.
 

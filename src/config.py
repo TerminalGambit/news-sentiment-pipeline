@@ -28,7 +28,11 @@ DATA_DIR = "data"
 RESULTS_FILE = f"{DATA_DIR}/sentiment_results.json"
 
 # Sentiment labels mapping
-SENTIMENT_LABELS = {"positive": "Positive", "negative": "Negative", "neutral": "Neutral"}
+SENTIMENT_LABELS = {
+    "positive": "Positive",
+    "negative": "Negative",
+    "neutral": "Neutral",
+}
 
 # Text preprocessing settings
 MIN_TEXT_LENGTH = 50  # Minimum text length to process

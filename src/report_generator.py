@@ -199,18 +199,27 @@ This report uses the FinBERT model, a specialized BERT model trained on financia
         # Sentiment distribution pie chart
         plt.figure(figsize=(10, 6))
         sentiment_counts = df["sentiment"].apply(lambda x: x["label"]).value_counts()
-        plt.pie(sentiment_counts, labels=sentiment_counts.index, autopct="%1.1f%%", startangle=90)
+        plt.pie(
+            sentiment_counts,
+            labels=sentiment_counts.index,
+            autopct="%1.1f%%",
+            startangle=90,
+        )
         plt.title("Sentiment Distribution")
         plt.axis("equal")
         plt.tight_layout()
         plt.savefig(
-            os.path.join(report_dir, "sentiment_distribution.png"), dpi=300, bbox_inches="tight"
+            os.path.join(report_dir, "sentiment_distribution.png"),
+            dpi=300,
+            bbox_inches="tight",
         )
         plt.close()
 
         # Source-wise analysis with average sentiment scores
         plt.figure(figsize=(12, 6))
-        source_sentiment = pd.crosstab(df["source"], df["sentiment"].apply(lambda x: x["label"]))
+        source_sentiment = pd.crosstab(
+            df["source"], df["sentiment"].apply(lambda x: x["label"])
+        )
         source_sentiment.plot(kind="bar", stacked=True)
         plt.title("Sentiment Distribution by Source")
         plt.xlabel("Source")
@@ -218,7 +227,11 @@ This report uses the FinBERT model, a specialized BERT model trained on financia
         plt.legend(title="Sentiment")
         plt.xticks(rotation=45, ha="right")
         plt.tight_layout()
-        plt.savefig(os.path.join(report_dir, "source_analysis.png"), dpi=300, bbox_inches="tight")
+        plt.savefig(
+            os.path.join(report_dir, "source_analysis.png"),
+            dpi=300,
+            bbox_inches="tight",
+        )
         plt.close()
 
     def _format_article_title(self, title: str) -> str:
@@ -244,7 +257,9 @@ This report uses the FinBERT model, a specialized BERT model trained on financia
 
         return title
 
-    def generate_report(self, results: List[Dict[str, Any]], date: Optional[str] = None) -> str:
+    def generate_report(
+        self, results: List[Dict[str, Any]], date: Optional[str] = None
+    ) -> str:
         """
         Generate a LaTeX report from the analysis results.
 
@@ -281,14 +296,18 @@ This report uses the FinBERT model, a specialized BERT model trained on financia
                 "top_positive": sorted(
                     results,
                     key=lambda x: (
-                        x["sentiment"]["score"] if x["sentiment"]["label"] == "Positive" else 0
+                        x["sentiment"]["score"]
+                        if x["sentiment"]["label"] == "Positive"
+                        else 0
                     ),
                     reverse=True,
                 )[:5],
                 "top_negative": sorted(
                     results,
                     key=lambda x: (
-                        x["sentiment"]["score"] if x["sentiment"]["label"] == "Negative" else 0
+                        x["sentiment"]["score"]
+                        if x["sentiment"]["label"] == "Negative"
+                        else 0
                     ),
                     reverse=True,
                 )[:5],
@@ -333,7 +352,9 @@ This report uses the FinBERT model, a specialized BERT model trained on financia
             logger.error("Error generating report: %s", str(e))
             raise
 
-    def _calculate_source_stats(self, results: List[Dict[str, Any]]) -> Dict[str, Dict[str, int]]:
+    def _calculate_source_stats(
+        self, results: List[Dict[str, Any]]
+    ) -> Dict[str, Dict[str, int]]:
         """
         Calculate sentiment statistics by source.
 
@@ -387,7 +408,8 @@ This report uses the FinBERT model, a specialized BERT model trained on financia
         total = len(results)
         if source_sentiment:
             most_negative_source = max(
-                source_sentiment.items(), key=lambda x: x[1]["negative"] / sum(x[1].values())
+                source_sentiment.items(),
+                key=lambda x: x[1]["negative"] / sum(x[1].values()),
             )[0]
         else:
             most_negative_source = "N/A"

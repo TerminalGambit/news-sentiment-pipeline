@@ -25,7 +25,11 @@ def get_available_reports() -> List[str]:
     if not os.path.exists(reports_dir):
         return []
     return sorted(
-        [d for d in os.listdir(reports_dir) if os.path.isdir(os.path.join(reports_dir, d))],
+        [
+            d
+            for d in os.listdir(reports_dir)
+            if os.path.isdir(os.path.join(reports_dir, d))
+        ],
         reverse=True,
     )
 

@@ -7,6 +7,7 @@ app = Flask(__name__)
 # Load FinBERT pipeline once at startup
 finbert = pipeline("sentiment-analysis", model="yiyanghkust/finbert-tone")
 
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     result = None
@@ -26,5 +27,6 @@ def index():
         text=text,
     )
 
+
 if __name__ == "__main__":
-    app.run(debug=True, port=5001) 
+    app.run(debug=True, port=5001)

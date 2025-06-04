@@ -28,7 +28,9 @@ class SentimentAnalysisPipeline:
         self.storage = DataStorage()
         self.report_generator = ReportGenerator()
 
-    def run(self, save_csv: bool = True, generate_report: bool = True) -> List[Dict[str, Any]]:
+    def run(
+        self, save_csv: bool = True, generate_report: bool = True
+    ) -> List[Dict[str, Any]]:
         """
         Run the complete sentiment analysis pipeline.
         """
@@ -41,7 +43,11 @@ class SentimentAnalysisPipeline:
                 logger.warning("No articles fetched, ending pipeline")
                 return []
             logger.info("Processing articles...")
-            processed_articles = [process_article(article) for article in articles if process_article(article)]
+            processed_articles = [
+                process_article(article)
+                for article in articles
+                if process_article(article)
+            ]
             if not processed_articles:
                 logger.warning("No articles processed successfully, ending pipeline")
                 return []

@@ -22,7 +22,9 @@ class DataStorage:
         """Initialize data storage with directory creation."""
         os.makedirs(DATA_DIR, exist_ok=True)
 
-    def save_to_json(self, data: List[Dict[str, Any]], filename: str = RESULTS_FILE) -> bool:
+    def save_to_json(
+        self, data: List[Dict[str, Any]], filename: str = RESULTS_FILE
+    ) -> bool:
         """
         Save results to JSON file.
 
@@ -63,8 +65,12 @@ class DataStorage:
 
             # Flatten nested sentiment dictionary
             if "sentiment" in df.columns:
-                df["sentiment_label"] = df["sentiment"].apply(lambda x: x.get("label", ""))
-                df["sentiment_score"] = df["sentiment"].apply(lambda x: x.get("score", 0))
+                df["sentiment_label"] = df["sentiment"].apply(
+                    lambda x: x.get("label", "")
+                )
+                df["sentiment_score"] = df["sentiment"].apply(
+                    lambda x: x.get("score", 0)
+                )
                 df = df.drop("sentiment", axis=1)
 
             # Save to CSV
