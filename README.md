@@ -34,17 +34,20 @@ make run
 ## Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/TerminalGambit/news-sentiment-pipeline.git
 cd news-sentiment-pipeline
 ```
 
 2. Install dependencies using Make:
+
 ```bash
 make install
 ```
 
 Or for a complete development setup:
+
 ```bash
 make dev
 ```
@@ -76,6 +79,7 @@ results = pipeline.run()
 ```
 
 Or simply use:
+
 ```bash
 make run
 ```
@@ -113,6 +117,7 @@ storage.save_to_csv(results)
 The pipeline generates two types of output files:
 
 1. JSON file (`data/sentiment_results.json`):
+
 ```json
 [
   {
@@ -132,9 +137,9 @@ The pipeline generates two types of output files:
 ```
 
 2. CSV file (`data/sentiment_results_YYYYMMDD_HHMMSS.csv`):
-- Contains flattened data with sentiment label and score in separate columns
-- Includes all article metadata
-- Timestamp in filename for historical tracking
+   - Contains flattened data with sentiment label and score in separate columns
+   - Includes all article metadata
+   - Timestamp in filename for historical tracking
 
 ## Configuration
 
@@ -157,6 +162,7 @@ The project uses several tools to maintain code quality:
 - `pytest-cov` for test coverage
 
 Run these tools using make commands:
+
 ```bash
 make format  # Format code
 make lint    # Run linting
@@ -166,6 +172,7 @@ make test    # Run tests
 ### Updating Dependencies
 
 To update all dependencies to their latest versions:
+
 ```bash
 make update
 ```

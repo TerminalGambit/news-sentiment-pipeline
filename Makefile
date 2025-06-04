@@ -120,4 +120,4 @@ web-install:
 
 web:
 	@echo "Starting web interface..."
-	$(PYTHON) -c "from src.web_app import run_web_app; run_web_app()" 
+	./venv/bin/python -c "from src.web_app import run_web_app; run_web_app()" 
