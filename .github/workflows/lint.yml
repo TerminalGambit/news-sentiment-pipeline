@@ -23,9 +23,9 @@ jobs:
         pip install feedparser beautifulsoup4 transformers torch pandas numpy python-dotenv requests tqdm
         pip install black pylint isort
         
-    - name: Reformat files with black
+    - name: Check formatting with black
       run: |
-        black src/
+        black --check src/
 
     - name: Check import order with isort
       run: |

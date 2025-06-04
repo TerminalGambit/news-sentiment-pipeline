@@ -177,6 +177,12 @@ To update all dependencies to their latest versions:
 make update
 ```
 
+> **Before pushing code, always run:**
+> ```bash
+> black src/
+> ```
+> to ensure formatting compliance with the CI.
+
 ## Contributing
 
 1. Fork the repository
