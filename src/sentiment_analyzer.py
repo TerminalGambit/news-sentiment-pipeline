@@ -7,8 +7,7 @@ from typing import Any, Dict, List
 
 import torch
 from tqdm import tqdm
-from transformers import (AutoModelForSequenceClassification, AutoTokenizer,
-                          pipeline)
+from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
 
 from .config import MODEL_NAME, SENTIMENT_LABELS
 
