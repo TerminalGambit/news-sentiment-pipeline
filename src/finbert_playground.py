@@ -1,5 +1,8 @@
-import os
-from flask import Flask, render_template, request, jsonify
+"""
+FinBERT playground web application.
+"""
+
+from flask import Flask, jsonify, render_template, request
 from transformers import pipeline
 
 app = Flask(__name__)
