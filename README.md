@@ -1,5 +1,11 @@
 # Financial News Sentiment Analysis
 
+[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Tests](https://github.com/TerminalGambit/news-sentiment-pipeline/actions/workflows/tests.yml/badge.svg)](https://github.com/TerminalGambit/news-sentiment-pipeline/actions/workflows/tests.yml)
+[![Lint](https://github.com/TerminalGambit/news-sentiment-pipeline/actions/workflows/lint.yml/badge.svg)](https://github.com/TerminalGambit/news-sentiment-pipeline/actions/workflows/lint.yml)
+
 A Python package for analyzing sentiment in financial news articles using FinBERT.
 
 ## Features
@@ -11,12 +17,26 @@ A Python package for analyzing sentiment in financial news articles using FinBER
 - Comprehensive logging and error handling
 - Modular and extensible design
 
+## Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/TerminalGambit/news-sentiment-pipeline.git
+cd news-sentiment-pipeline
+
+# Install dependencies
+make install
+
+# Run the pipeline
+make run
+```
+
 ## Installation
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd financial-news-sentiment
+git clone https://github.com/TerminalGambit/news-sentiment-pipeline.git
+cd news-sentiment-pipeline
 ```
 
 2. Install dependencies using Make:
