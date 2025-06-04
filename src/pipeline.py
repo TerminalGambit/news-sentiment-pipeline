@@ -11,6 +11,7 @@ from .news_ingestion import fetch_all_feeds
 from .text_processor import process_article
 from .sentiment_analyzer import SentimentAnalyzer
 from .storage import DataStorage
+from .report_generator import ReportGenerator
 
 # Configure logging
 logging.basicConfig(
@@ -24,13 +25,15 @@ class SentimentAnalysisPipeline:
         """Initialize the pipeline components."""
         self.analyzer = SentimentAnalyzer()
         self.storage = DataStorage()
+        self.report_generator = ReportGenerator()
 
-    def run(self, save_csv: bool = True) -> List[Dict[str, Any]]:
+    def run(self, save_csv: bool = True, generate_report: bool = True) -> List[Dict[str, Any]]:
         """
         Run the complete sentiment analysis pipeline.
         
         Args:
             save_csv (bool): Whether to save results in CSV format
+            generate_report (bool): Whether to generate a LaTeX report
             
         Returns:
             List[Dict[str, Any]]: Processed articles with sentiment analysis
@@ -69,6 +72,12 @@ class SentimentAnalysisPipeline:
             
             if save_csv:
                 self.storage.save_to_csv(results)
+                
+            # 5. Generate report if requested
+            if generate_report:
+                logger.info("Generating report...")
+                report_path = self.report_generator.generate_report(results)
+                logger.info(f"Report generated: {report_path}")
                 
             # Log summary
             duration = time.time() - start_time
