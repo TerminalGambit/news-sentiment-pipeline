@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}FinBERT Playground - Financial News Sentiment Analysis{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-body">
+                <h3 class="card-title mb-3">FinBERT Playground</h3>
+                <form method="post" autocomplete="off">
+                    <div class="mb-3">
+                        <label for="text" class="form-label">Enter text to analyze:</label>
+                        <textarea class="form-control" id="text" name="text" rows="4" required>{{ text }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Analyze</button>
+                </form>
+                {% if result %}
+                <hr>
+                <h5 class="mt-4">Prediction</h5>
+                <p class="lead">
+                    <span class="fw-bold">Label:</span> <span class="badge bg-info text-dark">{{ result.label }}</span>
+                    <span class="fw-bold ms-3">Confidence:</span> {{ '%.2f'|format(result.score) }}
+                </p>
+                <div class="mt-4">
+                    <h6>Class Probabilities</h6>
+                    <canvas id="probsChart" height="120"></canvas>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% if probs %}
+<script>
+    const ctx = document.getElementById('probsChart').getContext('2d');
+    const data = {
+        labels: {{ probs.keys()|list|tojson }},
+        datasets: [{
+            label: 'Probability',
+            data: {{ probs.values()|list|tojson }},
+            backgroundColor: ['#28a745', '#ffc107', '#dc3545'],
+        }]
+    };
+    new Chart(ctx, {
+        type: 'bar',
+        data: data,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: true }
+            },
+            scales: {
+                y: { beginAtZero: true, max: 1 }
+            }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %} 

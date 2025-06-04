@@ -1,4 +1,4 @@
-.PHONY: install clean test run lint format help report report-cache setup-latex web web-install
+.PHONY: install clean test run lint format help report report-cache setup-latex web web-install finbert
 
 # Python version
 PYTHON := python3
@@ -27,6 +27,7 @@ help:
 	@echo "  make help       - Show this help message"
 	@echo "  make web-install - Install web dependencies"
 	@echo "  make web        - Start web interface"
+	@echo "  make finbert    - Run the FinBERT playground web app"
 
 install:
 	@echo "Installing dependencies..."
@@ -120,4 +121,7 @@ web-install:
 
 web:
 	@echo "Starting web interface..."
-	./venv/bin/python -c "from src.web_app import run_web_app; run_web_app()" 
+	./venv/bin/python -c "from src.web_app import run_web_app; run_web_app()"
+
+finbert:
+	./venv/bin/python -m src.finbert_playground 
