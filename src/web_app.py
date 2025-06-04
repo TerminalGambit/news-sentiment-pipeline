@@ -2,6 +2,7 @@
 Web application for displaying sentiment analysis reports.
 """
 
+# pylint: disable=import-error
 import json
 import os
 from typing import Any, Dict, List

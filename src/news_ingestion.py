@@ -2,6 +2,8 @@
 News ingestion module for fetching financial news from RSS feeds.
 """
 
+# pylint: disable=too-few-public-methods
+
 import logging
 import random
 import time
@@ -40,10 +42,9 @@ class RateLimiter:
         self.last_request = time.time()
 
 
+# pylint: disable=too-few-public-methods
 class NewsFetcher:
     """Class to handle news fetching with retries and rate limiting."""
-
-    # pylint: disable=too-few-public-methods
 
     def __init__(self):
         self.session = self._create_session()
@@ -145,7 +146,7 @@ def fetch_rss_articles(feed_url: str, source: str) -> List[Dict[str, Any]]:
         return []
 
     articles = fetcher.process_feed(feed, source)
-    logger.info(f"Successfully fetched {len(articles)} articles from {source}")
+    logger.info("Successfully fetched %d articles from %s", len(articles), source)
     return articles
 
 

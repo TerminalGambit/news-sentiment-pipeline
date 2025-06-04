@@ -1,7 +1,8 @@
 """
-FinBERT playground web application.
+FinBERT playground web application for interactive sentiment analysis.
 """
 
+# pylint: disable=import-error
 from flask import Flask, render_template, request
 from transformers import pipeline
 

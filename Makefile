@@ -1,8 +1,8 @@
 .PHONY: install clean test run lint format help report report-cache setup-latex web web-install finbert
 
 # Python version
-PYTHON := python3.10
-PIP := pip3.10
+PYTHON := ./venv/bin/python3.10
+PIP := ./venv/bin/pip3.10
 
 # Project directories
 SRC_DIR := src
@@ -95,7 +95,7 @@ update:
 # Report generation
 report:
 	@echo "Generating report from latest analysis..."
-	python3 -c "from src.report_generator import ReportGenerator; from src.storage import DataStorage; storage = DataStorage(); results = storage.load_from_json(); generator = ReportGenerator(); path = generator.generate_report(results); print(path)" > .last_report_path.tmp
+	$(PYTHON) -c "from src.report_generator import ReportGenerator; from src.storage import DataStorage; storage = DataStorage(); results = storage.load_from_json(); generator = ReportGenerator(); path = generator.generate_report(results); print(path)" > .last_report_path.tmp
 	REPORT_PATH=$$(tail -n 1 .last_report_path.tmp | grep -o 'data/reports/[^ ]*report.pdf' || true); \
 	if [ -z "$$REPORT_PATH" ]; then \
 		echo "[ERROR] Report PDF path not found. Check logs for errors."; \
@@ -124,10 +124,10 @@ web-install:
 
 web:
 	@echo "Starting web interface..."
-	./venv/bin/python -c "from src.web_app import run_web_app; run_web_app()"
+	$(PYTHON) -c "from src.web_app import run_web_app; run_web_app()"
 
 finbert:
-	./venv/bin/python -m src.finbert_playground
+	$(PYTHON) -m src.finbert_playground
 
 prelint:
 	@echo "Running prelint checks..."
