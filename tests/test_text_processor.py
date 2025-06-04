@@ -42,10 +42,10 @@ def test_process_article():
     }
     processed = process_article(article)
     assert processed is not None
-    assert 'text' in processed
+    assert 'processed_text' in processed
     assert 'title' in processed
     assert 'source' in processed
-    assert len(processed['text']) > 0
+    assert len(processed['processed_text']) > 0
 
 def test_process_article_invalid():
     """Test article processing with invalid input."""
