@@ -23,6 +23,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install feedparser beautifulsoup4 transformers torch pandas numpy python-dotenv requests tqdm
         pip install black pylint isort
+        pip install flask matplotlib seaborn jinja2
         
     - name: Check formatting with black
       run: |
