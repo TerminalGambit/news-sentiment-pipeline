@@ -49,7 +49,13 @@ clean:
 	find . -type d -name ".coverage" -exec rm -rf {} +
 	rm -rf $(DATA_DIR)/*
 
-test:
+# Add pretest target
+pretest:
+	@echo "Installing dependencies for tests..."
+	$(PIP) install -r requirements.txt
+
+# Update test target to depend on pretest
+test: pretest
 	@echo "Running tests..."
 	$(PYTHON) -m pytest $(TEST_DIR) -v --cov=$(SRC_DIR)
 
