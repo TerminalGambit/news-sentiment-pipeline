@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class SentimentAnalysisPipeline:
     """Pipeline for orchestrating the sentiment analysis process."""
+
     # pylint: disable=too-few-public-methods
 
     def __init__(self):

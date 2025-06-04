@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class ReportGenerator:
     """Class for generating LaTeX and PDF reports from sentiment analysis results."""
+
     # pylint: disable=too-few-public-methods
 
     def __init__(self):

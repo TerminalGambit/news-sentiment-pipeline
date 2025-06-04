@@ -42,6 +42,7 @@ class RateLimiter:
 
 class NewsFetcher:
     """Class to handle news fetching with retries and rate limiting."""
+
     # pylint: disable=too-few-public-methods
 
     def __init__(self):
@@ -82,7 +83,9 @@ class NewsFetcher:
 
             feed = feedparser.parse(response.content)
             if feed.bozo:
-                logger.warning("Feed parsing issues for %s: %s", feed_url, feed.bozo_exception)
+                logger.warning(
+                    "Feed parsing issues for %s: %s", feed_url, feed.bozo_exception
+                )
 
             return feed
 
