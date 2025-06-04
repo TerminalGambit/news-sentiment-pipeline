@@ -71,6 +71,7 @@ class SentimentAnalysisPipeline:
             logger.info("Sentiment distribution:")
             for label, count in sentiment_counts.items():
                 logger.info("%s: %d articles", label, count)
+            logger.info("Total articles fetched: %d", len(articles))
             return results
         except Exception as e:
             logger.error("Pipeline failed: %s", str(e))

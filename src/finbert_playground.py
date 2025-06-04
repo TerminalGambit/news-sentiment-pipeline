@@ -2,7 +2,7 @@
 FinBERT playground web application.
 """
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, render_template, request
 from transformers import pipeline
 
 app = Flask(__name__)
@@ -13,6 +13,7 @@ finbert = pipeline("sentiment-analysis", model="yiyanghkust/finbert-tone")
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+    """Render the FinBERT playground and handle sentiment analysis requests."""
     result = None
     probs = None
     text = ""

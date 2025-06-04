@@ -68,7 +68,7 @@ def clean_html(raw_html: str) -> str:
         return text.strip()
 
     except Exception as e:
-        logger.error(f"Error cleaning HTML: {str(e)}")
+        logger.error("Error cleaning HTML: %s", str(e))
         return raw_html
 
 
@@ -159,7 +159,7 @@ def preprocess_text(text: str) -> Optional[str]:
 
         return text
 
-    except Exception as e:  # pylint: disable=broad-except
+    except Exception as e:
         logger.error("Error preprocessing text: %s", str(e))
         return None
 
@@ -200,6 +200,6 @@ def process_article(article: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 
         return article
 
-    except Exception as e:  # pylint: disable=broad-except
+    except Exception as e:
         logger.error("Error processing article: %s", str(e))
         return None

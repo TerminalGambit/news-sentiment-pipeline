@@ -6,8 +6,7 @@ import json
 import logging
 import os
 import subprocess
-from datetime import datetime, timedelta
-from pathlib import Path
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import matplotlib.pyplot as plt
