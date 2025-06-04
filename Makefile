@@ -1,8 +1,8 @@
 .PHONY: install clean test run lint format help report report-cache setup-latex web web-install finbert
 
 # Python version
-PYTHON := python3
-PIP := pip3
+PYTHON := python3.10
+PIP := pip3.10
 
 # Project directories
 SRC_DIR := src

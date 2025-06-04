@@ -35,7 +35,7 @@ def test_process_article():
     """Test article processing functionality."""
     article = {
         'title': 'Test Article',
-        'summary': '<p>Test content</p>',
+        'summary': '<p>This is a test article about financial markets. The stock market showed significant movement today with major indices reaching new highs. Market analysts are optimistic about future growth prospects.</p>',
         'link': 'http://example.com',
         'published': '2024-03-20T12:00:00Z',
         'source': 'Test Source'
