@@ -59,6 +59,9 @@ run:
 
 lint:
 	@echo "Running linting checks..."
+	$(PIP) install isort
+	isort $(SRC_DIR)
+	black $(SRC_DIR)
 	pylint $(SRC_DIR)
 
 format:
@@ -124,4 +127,9 @@ web:
 	./venv/bin/python -c "from src.web_app import run_web_app; run_web_app()"
 
 finbert:
-	./venv/bin/python -m src.finbert_playground 
+	./venv/bin/python -m src.finbert_playground
+
+prelint:
+	@echo "Auto-formatting imports and code style before linting..."
+	isort $(SRC_DIR)
+	black $(SRC_DIR) 
