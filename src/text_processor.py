@@ -67,7 +67,7 @@ def clean_html(raw_html: str) -> str:
 
         return text.strip()
 
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         logger.error("Error cleaning HTML: %s", str(e))
         return raw_html
 
@@ -159,7 +159,7 @@ def preprocess_text(text: str) -> Optional[str]:
 
         return text
 
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         logger.error("Error preprocessing text: %s", str(e))
         return None
 
@@ -178,7 +178,7 @@ def process_article(article: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         # Validate article structure
         required_fields = ["title", "summary", "link", "source"]
         if not all(field in article for field in required_fields):
-            logger.error(f"Article missing required fields: {required_fields}")
+            logger.error("Article missing required fields: %s", required_fields)
             return None
 
         # Clean HTML from summary
@@ -200,6 +200,6 @@ def process_article(article: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 
         return article
 
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         logger.error("Error processing article: %s", str(e))
         return None

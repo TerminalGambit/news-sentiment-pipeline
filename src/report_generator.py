@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class ReportGenerator:
     """Class for generating LaTeX and PDF reports from sentiment analysis results."""
+    # pylint: disable=too-few-public-methods
 
     def __init__(self):
         """Initialize the report generator with necessary directories."""
@@ -413,8 +414,9 @@ This report uses the FinBERT model, a specialized BERT model trained on financia
         else:
             most_negative_source = "N/A"
         return (
-            f"Out of {total} articles analyzed, sentiment was generally neutral to slightly negative, "
-            f"with {most_negative_source} showing the most negative tone overall."
+            f"Out of {total} articles analyzed, sentiment was generally neutral to "
+            f"slightly negative, with {most_negative_source} showing the most "
+            "negative tone overall."
         )
 
 
@@ -430,6 +432,7 @@ def generate_report_from_cache(date: str) -> Optional[str]:
     """
     try:
         generator = ReportGenerator()
+        # pylint: disable=protected-access
         cached_results = generator._get_cached_results(date)
 
         if cached_results is None:

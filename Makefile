@@ -130,6 +130,9 @@ finbert:
 	./venv/bin/python -m src.finbert_playground
 
 prelint:
-	@echo "Auto-formatting imports and code style before linting..."
+	@echo "Running prelint checks..."
 	isort $(SRC_DIR)
-	black $(SRC_DIR) 
+	black $(SRC_DIR)
+	black --check $(SRC_DIR)
+	isort --check-only $(SRC_DIR)
+	pylint $(SRC_DIR) 

@@ -57,7 +57,7 @@ class SentimentAnalyzer:
                 "label": SENTIMENT_LABELS.get(result["label"].lower(), result["label"]),
                 "score": round(result["score"], 3),
             }
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error("Error analyzing text: %s", str(e))
             return {"label": "Unknown", "score": 0.0}
 

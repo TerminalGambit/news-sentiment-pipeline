@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class SentimentAnalysisPipeline:
     """Pipeline for orchestrating the sentiment analysis process."""
+    # pylint: disable=too-few-public-methods
 
     def __init__(self):
         """Initialize the pipeline components."""
@@ -73,7 +74,7 @@ class SentimentAnalysisPipeline:
                 logger.info("%s: %d articles", label, count)
             logger.info("Total articles fetched: %d", len(articles))
             return results
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error("Pipeline failed: %s", str(e))
             return []
 
