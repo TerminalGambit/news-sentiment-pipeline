@@ -5,6 +5,13 @@
 {% block content %}
 <h1 class="mb-4">Available Reports</h1>
 
+<form class="mb-4" method="get" action="" onsubmit="event.preventDefault(); window.location.href='/market/' + document.getElementById('tickerInput').value.toUpperCase();">
+    <div class="input-group input-group-lg">
+        <input type="text" class="form-control" id="tickerInput" placeholder="Enter ticker symbol (e.g. AAPL, TSLA, MSFT)" required>
+        <button class="btn btn-primary" type="submit">Search</button>
+    </div>
+</form>
+
 <div class="row mb-4">
     <div class="col-md-6">
         <div class="card h-100 shadow">
