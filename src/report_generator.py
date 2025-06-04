@@ -437,7 +437,7 @@ def generate_report_from_cache(date: str) -> Optional[str]:
         cached_results = generator._get_cached_results(date)
 
         if cached_results is None:
-            logger.warning(f"No cached results found for date: {date}")
+            logger.warning("No cached results found for date: %s", date)
             return None
 
         return generator.generate_report(cached_results, date)
