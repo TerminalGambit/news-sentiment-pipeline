@@ -1,5 +1,6 @@
 name: Lint
 
+# Trigger workflow on push to main or pull requests
 on:
   push:
     branches: [ main ]
