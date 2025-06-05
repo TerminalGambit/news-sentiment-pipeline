@@ -3,51 +3,132 @@
 {% block title %}Market Overview - {{ ticker }}{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">Market Overview: {{ info.longName if info else ticker }}</h2>
-{% if error %}
-    <div class="alert alert-danger">Error fetching data: {{ error }}</div>
-{% else %}
-    <div class="mb-3">
-        <strong>Ticker:</strong> {{ ticker }}<br>
-        {% if info %}
-            <strong>Exchange:</strong> {{ info.exchange }}<br>
-            <strong>Sector:</strong> {{ info.sector }}<br>
-            <strong>Industry:</strong> {{ info.industry }}<br>
-            <strong>Description:</strong> {{ info.longBusinessSummary }}<br>
-        {% endif %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">
+                <i class="fas fa-chart-line me-2"></i>
+                Market Overview: {{ info.longName if info else ticker }}
+            </h2>
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#infoModal">
+                    <i class="fas fa-info-circle me-1"></i> Company Info
+                </button>
+                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#dataModal">
+                    <i class="fas fa-table me-1"></i> View Data
+                </button>
+            </div>
+        </div>
     </div>
+</div>
+
+{% include 'market_nav.html' %}
+
+{% if error %}
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        Error fetching data: {{ error }}
+    </div>
+{% else %}
     {% if price_data %}
-        <div id="priceChart" style="height:400px;"></div>
-    {% endif %}
-    {% if df %}
-        <h5>Recent Prices</h5>
-        <div class="table-responsive">
-            <table class="table table-sm table-striped">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Open</th>
-                        <th>High</th>
-                        <th>Low</th>
-                        <th>Close</th>
-                        <th>Volume</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in df[:10] %}
-                    <tr>
-                        <td>{{ row.Date }}</td>
-                        <td>{{ row.Open }}</td>
-                        <td>{{ row.High }}</td>
-                        <td>{{ row.Low }}</td>
-                        <td>{{ row.Close }}</td>
-                        <td>{{ row.Volume }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="card mb-4">
+            <div class="card-body">
+                <div id="priceChart" style="height:500px;"></div>
+            </div>
         </div>
     {% endif %}
+
+    <!-- Company Info Modal -->
+    <div class="modal fade" id="infoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Company Information</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {% if info %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <h6 class="text-muted mb-2">Basic Information</h6>
+                                    <p><strong>Ticker:</strong> {{ ticker }}</p>
+                                    <p><strong>Exchange:</strong> {{ info.exchange }}</p>
+                                    <p><strong>Sector:</strong> {{ info.sector }}</p>
+                                    <p><strong>Industry:</strong> {{ info.industry }}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <h6 class="text-muted mb-2">Market Data</h6>
+                                    <p><strong>Market Cap:</strong> {{ info.marketCap|format_number }}</p>
+                                    <p><strong>52 Week High:</strong> {{ info.fiftyTwoWeekHigh|format_number }}</p>
+                                    <p><strong>52 Week Low:</strong> {{ info.fiftyTwoWeekLow|format_number }}</p>
+                                    <p><strong>Volume:</strong> {{ info.volume|format_number }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <h6 class="text-muted mb-2">Business Summary</h6>
+                            <p class="text-justify">{{ info.longBusinessSummary }}</p>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Company information not available
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table Modal -->
+    <div class="modal fade" id="dataModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Recent Price Data</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {% if df %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Open</th>
+                                        <th>High</th>
+                                        <th>Low</th>
+                                        <th>Close</th>
+                                        <th>Volume</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in df[:20] %}
+                                    <tr>
+                                        <td>{{ row.Date }}</td>
+                                        <td>${{ "%.2f"|format(row.Open) }}</td>
+                                        <td>${{ "%.2f"|format(row.High) }}</td>
+                                        <td>${{ "%.2f"|format(row.Low) }}</td>
+                                        <td>${{ "%.2f"|format(row.Close) }}</td>
+                                        <td>{{ "{:,}".format(row.Volume) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Price data not available
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 {% endif %}
 {% endblock %}
 
@@ -63,15 +144,45 @@
         type: 'scatter',
         mode: 'lines',
         name: 'Close Price',
-        line: {color: '#007bff'}
+        line: {
+            color: '#2563eb',
+            width: 2
+        },
+        fill: 'tozeroy',
+        fillcolor: 'rgba(37, 99, 235, 0.1)'
     };
     const layout = {
-        title: 'Stock Price (1y)',
-        xaxis: {title: 'Date'},
-        yaxis: {title: 'Price (USD)'},
-        margin: {t: 40}
+        title: {
+            text: 'Stock Price (1y)',
+            font: {
+                size: 24,
+                family: 'Inter'
+            }
+        },
+        xaxis: {
+            title: 'Date',
+            showgrid: true,
+            gridcolor: 'rgba(0,0,0,0.1)'
+        },
+        yaxis: {
+            title: 'Price (USD)',
+            showgrid: true,
+            gridcolor: 'rgba(0,0,0,0.1)',
+            tickprefix: '$'
+        },
+        margin: {t: 40, r: 20, b: 40, l: 60},
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        hovermode: 'x unified',
+        showlegend: false
     };
-    Plotly.newPlot('priceChart', [trace], layout, {responsive: true});
+    const config = {
+        responsive: true,
+        displayModeBar: true,
+        displaylogo: false,
+        modeBarButtonsToRemove: ['lasso2d', 'select2d']
+    };
+    Plotly.newPlot('priceChart', [trace], layout, config);
 </script>
 {% endif %}
 {% endblock %} 

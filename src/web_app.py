@@ -18,6 +18,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import io
 import base64
+import numpy as np
 
 app = Flask(__name__)
 
@@ -25,6 +26,29 @@ app = Flask(__name__)
 report_generator = ReportGenerator()
 data_storage = DataStorage()
 
+def format_number(value):
+    """Format number with appropriate suffix (K, M, B) and decimal places."""
+    if value is None:
+        return "N/A"
+    
+    try:
+        value = float(value)
+    except (ValueError, TypeError):
+        return str(value)
+    
+    if abs(value) >= 1e12:  # Trillion
+        return f"${value/1e12:.2f}T"
+    elif abs(value) >= 1e9:  # Billion
+        return f"${value/1e9:.2f}B"
+    elif abs(value) >= 1e6:  # Million
+        return f"${value/1e6:.2f}M"
+    elif abs(value) >= 1e3:  # Thousand
+        return f"${value/1e3:.2f}K"
+    else:
+        return f"${value:.2f}"
+
+# Register the custom filter
+app.jinja_env.filters['format_number'] = format_number
 
 def get_available_reports() -> List[str]:
     """Get list of available report dates."""
@@ -182,6 +206,91 @@ def market_overview(ticker):
         info=info,
         error=error,
         price_data=price_data,
+        df=df.to_dict(orient="records") if not df.empty else None
+    )
+
+
+@app.route("/market/<ticker>/sma")
+def market_sma(ticker):
+    data = fetch_market_data(ticker)
+    error = data.get("error")
+    info = data.get("info")
+    df = get_market_dataframe(data)
+    sma_data = None
+    if not error and not df.empty:
+        df["SMA20"] = df["Close"].rolling(window=20).mean()
+        df["SMA50"] = df["Close"].rolling(window=50).mean()
+        sma_data = {
+            "dates": df["Date"].tolist(),
+            "close": df["Close"].tolist(),
+            "sma20": df["SMA20"].tolist(),
+            "sma50": df["SMA50"].tolist(),
+        }
+    return render_template(
+        "market_sma.html",
+        ticker=ticker,
+        info=info,
+        error=error,
+        sma_data=sma_data,
+        df=df.to_dict(orient="records") if not df.empty else None
+    )
+
+
+@app.route("/market/<ticker>/rsi")
+def market_rsi(ticker):
+    data = fetch_market_data(ticker)
+    error = data.get("error")
+    info = data.get("info")
+    df = get_market_dataframe(data)
+    rsi_data = None
+    if not error and not df.empty:
+        delta = df["Close"].diff()
+        gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+        rs = gain / loss
+        rsi = 100 - (100 / (1 + rs))
+        df["RSI14"] = rsi
+        rsi_data = {
+            "dates": df["Date"].tolist(),
+            "close": df["Close"].tolist(),
+            "rsi14": df["RSI14"].tolist(),
+        }
+    return render_template(
+        "market_rsi.html",
+        ticker=ticker,
+        info=info,
+        error=error,
+        rsi_data=rsi_data,
+        df=df.to_dict(orient="records") if not df.empty else None
+    )
+
+
+@app.route("/market/<ticker>/macd")
+def market_macd(ticker):
+    data = fetch_market_data(ticker)
+    error = data.get("error")
+    info = data.get("info")
+    df = get_market_dataframe(data)
+    macd_data = None
+    if not error and not df.empty:
+        ema12 = df["Close"].ewm(span=12, adjust=False).mean()
+        ema26 = df["Close"].ewm(span=26, adjust=False).mean()
+        macd = ema12 - ema26
+        signal = macd.ewm(span=9, adjust=False).mean()
+        df["MACD"] = macd
+        df["MACDSignal"] = signal
+        macd_data = {
+            "dates": df["Date"].tolist(),
+            "close": df["Close"].tolist(),
+            "macd": df["MACD"].tolist(),
+            "signal": df["MACDSignal"].tolist(),
+        }
+    return render_template(
+        "market_macd.html",
+        ticker=ticker,
+        info=info,
+        error=error,
+        macd_data=macd_data,
         df=df.to_dict(orient="records") if not df.empty else None
     )
 

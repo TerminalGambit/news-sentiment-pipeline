@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}SMA - {{ ticker }}{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Simple Moving Averages (SMA) for {{ info.longName if info else ticker }}</h2>
+<a href="{{ url_for('market_overview', ticker=ticker) }}" class="btn btn-secondary mb-3">Back to Market Overview</a>
+<div class="mb-3">
+    <strong>Ticker:</strong> {{ ticker }}<br>
+    {% if info %}
+        <strong>Exchange:</strong> {{ info.exchange }}<br>
+        <strong>Sector:</strong> {{ info.sector }}<br>
+        <strong>Industry:</strong> {{ info.industry }}<br>
+    {% endif %}
+</div>
+<div class="alert alert-info">
+    <strong>What is SMA?</strong> The Simple Moving Average (SMA) smooths price data by averaging closing prices over a set period. Common SMAs are 20-day and 50-day. Crossovers can signal trend changes.
+</div>
+{% if error %}
+    <div class="alert alert-danger">Error fetching data: {{ error }}</div>
+{% elif sma_data %}
+    <div id="smaChart" style="height:400px;"></div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% if sma_data %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    const smaData = {{ sma_data|tojson }};
+    const traces = [
+        {
+            x: smaData.dates,
+            y: smaData.close,
+            type: 'scatter',
+            mode: 'lines',
+            name: 'Close Price',
+            line: {color: '#007bff'}
+        },
+        {
+            x: smaData.dates,
+            y: smaData.sma20,
+            type: 'scatter',
+            mode: 'lines',
+            name: 'SMA 20',
+            line: {color: '#28a745', dash: 'dot'}
+        },
+        {
+            x: smaData.dates,
+            y: smaData.sma50,
+            type: 'scatter',
+            mode: 'lines',
+            name: 'SMA 50',
+            line: {color: '#dc3545', dash: 'dash'}
+        }
+    ];
+    const layout = {
+        title: 'Close Price with 20 & 50 Day SMA',
+        xaxis: {title: 'Date'},
+        yaxis: {title: 'Price (USD)'},
+        margin: {t: 40}
+    };
+    Plotly.newPlot('smaChart', traces, layout, {responsive: true});
+</script>
+{% endif %}
+{% endblock %} 

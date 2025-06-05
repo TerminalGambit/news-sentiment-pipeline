@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}MACD - {{ ticker }}{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">MACD (Moving Average Convergence Divergence) for {{ info.longName if info else ticker }}</h2>
+{% include 'market_nav.html' %}
+<div class="mb-3">
+    <strong>Ticker:</strong> {{ ticker }}<br>
+    {% if info %}
+        <strong>Exchange:</strong> {{ info.exchange }}<br>
+        <strong>Sector:</strong> {{ info.sector }}<br>
+        <strong>Industry:</strong> {{ info.industry }}<br>
+    {% endif %}
+</div>
+<div class="alert alert-info">
+    <strong>What is MACD?</strong> The MACD is a trend-following momentum indicator that shows the relationship between two moving averages of a security's price. The MACD line is the difference between the 12- and 26-period EMAs. The Signal line is a 9-period EMA of the MACD line.
+</div>
+{% if error %}
+    <div class="alert alert-danger">Error fetching data: {{ error }}</div>
+{% elif macd_data %}
+    <div id="macdChart" style="height:400px;"></div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% if macd_data %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    const macdData = {{ macd_data|tojson }};
+    const traces = [
+        {
+            x: macdData.dates,
+            y: macdData.close,
+            type: 'scatter',
+            mode: 'lines',
+            name: 'Close Price',
+            line: {color: '#007bff'}
+        },
+        {
+            x: macdData.dates,
+            y: macdData.macd,
+            type: 'scatter',
+            mode: 'lines',
+            name: 'MACD',
+            line: {color: '#28a745'}
+        },
+        {
+            x: macdData.dates,
+            y: macdData.signal,
+            type: 'scatter',
+            mode: 'lines',
+            name: 'MACD Signal',
+            line: {color: '#dc3545', dash: 'dash'}
+        }
+    ];
+    const layout = {
+        title: 'Close Price, MACD & Signal',
+        xaxis: {title: 'Date'},
+        yaxis: {title: 'Price / MACD'},
+        margin: {t: 40}
+    };
+    Plotly.newPlot('macdChart', traces, layout, {responsive: true});
+</script>
+{% endif %}
+{% endblock %} 

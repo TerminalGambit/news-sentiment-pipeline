@@ -1,24 +1,20 @@
 {% extends "base.html" %}
 
-{% block title %}Available Reports - Financial News Sentiment Analysis{% endblock %}
+{% block title %}NVIDIA Market Dashboard - Financial News Sentiment Analysis{% endblock %}
 
 {% block content %}
-<h1 class="mb-4">Available Reports</h1>
-
-<form class="mb-4" method="get" action="" onsubmit="event.preventDefault(); window.location.href='/market/' + document.getElementById('tickerInput').value.toUpperCase();">
-    <div class="input-group input-group-lg">
-        <input type="text" class="form-control" id="tickerInput" placeholder="Enter ticker symbol (e.g. AAPL, TSLA, MSFT)" required>
-        <button class="btn btn-primary" type="submit">Search</button>
-    </div>
-</form>
+<h1 class="mb-4">NVIDIA (NVDA) Market Dashboard</h1>
 
 <div class="row mb-4">
     <div class="col-md-6">
         <div class="card h-100 shadow">
             <div class="card-body">
-                <h4 class="card-title">Learn More About NVIDIA</h4>
-                <p class="card-text">Explore a detailed market overview, company info, and price trends for NVIDIA (NVDA).</p>
-                <a href="{{ url_for('market_overview', ticker='NVDA') }}" class="btn btn-success">View NVIDIA Market Overview</a>
+                <h4 class="card-title">Explore NVIDIA Market Data</h4>
+                <p class="card-text">Access a detailed market overview, technical indicators, and price trends for NVIDIA (NVDA).</p>
+                <a href="{{ url_for('market_overview', ticker='NVDA') }}" class="btn btn-success mb-2">Overview</a>
+                <a href="{{ url_for('market_sma', ticker='NVDA') }}" class="btn btn-outline-primary mb-2">SMA</a>
+                <a href="{{ url_for('market_rsi', ticker='NVDA') }}" class="btn btn-outline-warning mb-2">RSI</a>
+                <a href="{{ url_for('market_macd', ticker='NVDA') }}" class="btn btn-outline-danger mb-2">MACD</a>
             </div>
         </div>
     </div>

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}RSI - {{ ticker }}{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Relative Strength Index (RSI) for {{ info.longName if info else ticker }}</h2>
+{% include 'market_nav.html' %}
+<div class="mb-3">
+    <strong>Ticker:</strong> {{ ticker }}<br>
+    {% if info %}
+        <strong>Exchange:</strong> {{ info.exchange }}<br>
+        <strong>Sector:</strong> {{ info.sector }}<br>
+        <strong>Industry:</strong> {{ info.industry }}<br>
+    {% endif %}
+</div>
+<div class="alert alert-info">
+    <strong>What is RSI?</strong> The Relative Strength Index (RSI) is a momentum oscillator that measures the speed and change of price movements. RSI values above 70 are considered overbought, below 30 oversold.
+</div>
+{% if error %}
+    <div class="alert alert-danger">Error fetching data: {{ error }}</div>
+{% elif rsi_data %}
+    <div id="rsiChart" style="height:400px;"></div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% if rsi_data %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    const rsiData = {{ rsi_data|tojson }};
+    const traces = [
+        {
+            x: rsiData.dates,
+            y: rsiData.close,
+            type: 'scatter',
+            mode: 'lines',
+            name: 'Close Price',
+            line: {color: '#007bff'}
+        },
+        {
+            x: rsiData.dates,
+            y: rsiData.rsi14,
+            type: 'scatter',
+            mode: 'lines',
+            name: 'RSI 14',
+            yaxis: 'y2',
+            line: {color: '#ff9900'}
+        }
+    ];
+    const layout = {
+        title: 'Close Price and 14-Day RSI',
+        xaxis: {title: 'Date'},
+        yaxis: {title: 'Price (USD)'},
+        yaxis2: {
+            title: 'RSI',
+            overlaying: 'y',
+            side: 'right',
+            range: [0, 100],
+            showgrid: false
+        },
+        margin: {t: 40}
+    };
+    Plotly.newPlot('rsiChart', traces, layout, {responsive: true});
+</script>
+{% endif %}
+{% endblock %} 
