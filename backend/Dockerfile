@@ -10,7 +10,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
@@ -20,14 +20,14 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY src/ src/
+# Copy source code
+COPY . .
 
 # Create necessary directories
-RUN mkdir -p data/reports logs
+RUN mkdir -p data logs
 
 # Expose port
-EXPOSE 5000
+EXPOSE 8000
 
-# Run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "src.app:create_app()"] 
+# Use gunicorn to run the Flask app
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "src.app:create_app()"] 

@@ -5,6 +5,7 @@ PIP = $(VENV)/bin/pip
 FLASK = $(VENV)/bin/flask
 NODE = node
 NPM = npm
+FLASK_APP = src.app:create_app
 
 # Macro commands
 .PHONY: all clean install test run build docker-build docker-run
@@ -68,7 +69,7 @@ run-backend:
 	@echo "Starting backend server..."
 	cd backend && \
 	. $(VENV)/bin/activate && \
-	$(FLASK) run
+	FLASK_APP=$(FLASK_APP) $(FLASK) run
 
 build-backend:
 	@echo "Building backend..."
@@ -106,7 +107,7 @@ dev-backend:
 	@echo "Starting backend in development mode..."
 	cd backend && \
 	. $(VENV)/bin/activate && \
-	$(FLASK) run --debug
+	FLASK_APP=$(FLASK_APP) $(FLASK) run --debug
 
 dev-frontend:
 	@echo "Starting frontend in development mode..."

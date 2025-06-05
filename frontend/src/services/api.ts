@@ -1,115 +1,111 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
+// Market Data Types
 export interface MarketData {
   dates: string[];
   prices: number[];
-  volumes: number[];
-  sma_20: number[];
-  sma_50: number[];
-  rsi: number[];
-  macd: number[];
-  macd_signal: number[];
-  macd_hist: number[];
-  metadata: {
-    symbol: string;
-    timeframe: string;
-    period: string;
-    last_updated: string;
-    current_price: number;
-    price_change_24h: number;
-    volume_24h: number;
-  };
+  sma20?: number[];
+  sma50?: number[];
+  rsi?: number[];
+  macd?: number[];
+  signal?: number[];
+  histogram?: number[];
 }
 
 export interface MarketOverview {
-  timestamp: string;
-  symbols: {
-    [key: string]: {
-      current_price: number;
-      price_change_24h: number;
-      volume_24h: number;
-      rsi: number;
-      macd: number;
-      macd_signal: number;
-      macd_hist: number;
-    };
-  };
+  symbol: string;
+  name: string;
+  price: number;
+  change: number;
+  changePercent: number;
+  volume: number;
+  marketCap: number;
+  peRatio: number;
+  eps: number;
+  dividend: number;
+  dividendYield: number;
 }
 
+// Sentiment Types
 export interface SentimentResult {
   text: string;
-  sentiment: {
-    label: 'Positive' | 'Negative' | 'Neutral';
-    score: number;
-  };
+  sentiment: 'positive' | 'negative' | 'neutral';
+  score: number;
+  confidence: number;
 }
 
+// Report Types
 export interface Report {
   date: string;
-  total_articles: number;
-  sources: string[];
-  sentiment_distribution: {
-    Positive: number;
-    Neutral: number;
-    Negative: number;
-  };
-  source_stats: {
-    [key: string]: {
-      positive: number;
-      neutral: number;
-      negative: number;
-    };
-  };
-  top_positive: Article[];
-  top_negative: Article[];
+  summary: string;
+  articles: Article[];
 }
 
 export interface Article {
   title: string;
   summary: string;
-  link: string;
-  published: string;
   source: string;
-  sentiment: {
-    label: 'Positive' | 'Negative' | 'Neutral';
-    score: number;
-  };
+  url: string;
+  publishedAt: string;
+  sentiment: 'positive' | 'negative' | 'neutral';
+  score: number;
 }
 
+// API Services
 export const marketApi = {
-  getOverview: () => api.get<MarketOverview>('/api/market/overview'),
-  getData: (symbol: string, timeframe: string = '1mo', period: string = '1y') =>
-    api.get<MarketData>(`/api/market/data/${symbol}`, {
-      params: { timeframe, period },
+  getOverview: (symbol: string) => 
+    axios.get<MarketOverview>(`${API_BASE_URL}/market/overview/${symbol}`),
+  
+  getData: (symbol: string, timeframe: string = '1d', period: string = '1mo') => 
+    axios.get<MarketData>(`${API_BASE_URL}/market/data/${symbol}`, {
+      params: { timeframe, period }
     }),
-  getSymbols: () => api.get<{ symbols: string[] }>('/api/market/symbols'),
-  getTimeframes: () => api.get<{ timeframes: { [key: string]: string } }>('/api/market/timeframes'),
+  
+  getSMAData: (symbol: string) => 
+    axios.get<MarketData>(`${API_BASE_URL}/market/sma/${symbol}`),
+  
+  getRSIData: (symbol: string) => 
+    axios.get<MarketData>(`${API_BASE_URL}/market/rsi/${symbol}`),
+  
+  getMACDData: (symbol: string) => 
+    axios.get<MarketData>(`${API_BASE_URL}/market/macd/${symbol}`),
+  
+  getSymbols: () => 
+    axios.get<string[]>(`${API_BASE_URL}/market/symbols`),
+  
+  getTimeframes: () => 
+    axios.get<string[]>(`${API_BASE_URL}/market/timeframes`)
 };
 
 export const sentimentApi = {
-  analyzeText: (text: string) =>
-    api.post<SentimentResult>('/api/sentiment/analyze', { text }),
-  analyzeBatch: (texts: string[]) =>
-    api.post<SentimentResult[]>('/api/sentiment/analyze/batch', { texts }),
-  getHistory: () => api.get<SentimentResult[]>('/api/sentiment/history'),
-  saveResults: (results: SentimentResult[]) =>
-    api.post('/api/sentiment/save', { results }),
+  analyzeText: (text: string) => 
+    axios.post<SentimentResult>(`${API_BASE_URL}/sentiment/analyze`, { text }),
+  
+  analyzeBatch: (texts: string[]) => 
+    axios.post<SentimentResult[]>(`${API_BASE_URL}/sentiment/analyze/batch`, { texts }),
+  
+  getHistory: () => 
+    axios.get<SentimentResult[]>(`${API_BASE_URL}/sentiment/history`),
+  
+  saveResults: (results: SentimentResult[]) => 
+    axios.post(`${API_BASE_URL}/sentiment/save`, { results }),
+  
+  getPositiveArticles: () => 
+    axios.get<Article[]>(`${API_BASE_URL}/sentiment/articles/positive`),
+  
+  getNegativeArticles: () => 
+    axios.get<Article[]>(`${API_BASE_URL}/sentiment/articles/negative`)
 };
 
 export const reportApi = {
-  getReports: () => api.get<{ reports: string[] }>('/api/report/reports'),
-  getReport: (date: string) => api.get<Report>(`/api/report/reports/${date}`),
-  getPositiveArticles: (date: string) =>
-    api.get<{ articles: Article[] }>(`/api/report/reports/${date}/positive`),
-  getNegativeArticles: (date: string) =>
-    api.get<{ articles: Article[] }>(`/api/report/reports/${date}/negative`),
+  getReports: () => 
+    axios.get<Report[]>(`${API_BASE_URL}/reports`),
+  
+  getReport: (date: string) => 
+    axios.get<Report>(`${API_BASE_URL}/reports/${date}`),
+  
+  generateReport: () => 
+    axios.post<Report>(`${API_BASE_URL}/reports/generate`)
 }; 

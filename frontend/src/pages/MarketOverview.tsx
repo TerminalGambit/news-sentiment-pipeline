@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Line } from 'react-chartjs-2';
+import { useParams } from 'react-router-dom';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -8,9 +8,10 @@ import {
   LineElement,
   Title,
   Tooltip,
-  Legend,
+  Legend
 } from 'chart.js';
-import { marketApi, MarketData, MarketOverview } from '../services/api';
+import { marketApi, MarketOverview as MarketOverviewData, MarketData } from '../services/api';
+import Plot from 'react-plotly.js';
 
 ChartJS.register(
   CategoryScale,
@@ -23,161 +24,95 @@ ChartJS.register(
 );
 
 const MarketOverview: React.FC = () => {
-  const [overview, setOverview] = useState<MarketOverview | null>(null);
-  const [selectedSymbol, setSelectedSymbol] = useState<string>('BTC-USD');
+  const { ticker } = useParams<{ ticker: string }>();
+  const [overview, setOverview] = useState<MarketOverviewData | null>(null);
   const [marketData, setMarketData] = useState<MarketData | null>(null);
-  const [timeframe, setTimeframe] = useState<string>('1mo');
-  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!ticker) return;
+      
       try {
         setLoading(true);
-        const [overviewRes, dataRes] = await Promise.all([
-          marketApi.getOverview(),
-          marketApi.getData(selectedSymbol, timeframe),
+        const [overviewResponse, marketDataResponse] = await Promise.all([
+          marketApi.getOverview(ticker),
+          marketApi.getData(ticker)
         ]);
-        setOverview(overviewRes.data);
-        setMarketData(dataRes.data);
-        setError(null);
+        setOverview(overviewResponse.data);
+        setMarketData(marketDataResponse.data);
       } catch (err) {
-        setError('Failed to fetch market data');
-        console.error(err);
+        setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [selectedSymbol, timeframe]);
+  }, [ticker]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    );
+    return <div>Loading...</div>;
   }
 
   if (error) {
-    return (
-      <div className="text-center text-red-600 p-4">
-        <p>{error}</p>
-      </div>
-    );
+    return <div className="alert alert-danger">Error: {error}</div>;
   }
 
-  const priceChartData = {
-    labels: marketData?.dates || [],
-    datasets: [
-      {
-        label: 'Price',
-        data: marketData?.prices || [],
-        borderColor: 'rgb(14, 165, 233)',
-        tension: 0.1,
-      },
-      {
-        label: 'SMA 20',
-        data: marketData?.sma_20 || [],
-        borderColor: 'rgb(234, 179, 8)',
-        tension: 0.1,
-      },
-      {
-        label: 'SMA 50',
-        data: marketData?.sma_50 || [],
-        borderColor: 'rgb(239, 68, 68)',
-        tension: 0.1,
-      },
-    ],
-  };
-
-  const rsiChartData = {
-    labels: marketData?.dates || [],
-    datasets: [
-      {
-        label: 'RSI',
-        data: marketData?.rsi || [],
-        borderColor: 'rgb(14, 165, 233)',
-        tension: 0.1,
-      },
-    ],
-  };
-
-  const macdChartData = {
-    labels: marketData?.dates || [],
-    datasets: [
-      {
-        label: 'MACD',
-        data: marketData?.macd || [],
-        borderColor: 'rgb(14, 165, 233)',
-        tension: 0.1,
-      },
-      {
-        label: 'Signal',
-        data: marketData?.macd_signal || [],
-        borderColor: 'rgb(234, 179, 8)',
-        tension: 0.1,
-      },
-      {
-        label: 'Histogram',
-        data: marketData?.macd_hist || [],
-        borderColor: 'rgb(239, 68, 68)',
-        tension: 0.1,
-      },
-    ],
-  };
+  if (!ticker) {
+    return <div className="alert alert-warning">No ticker specified</div>;
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Market Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {overview?.symbols &&
-          Object.entries(overview.symbols).map(([symbol, data]) => (
-            <div key={symbol} className="card">
-              <h3 className="text-lg font-semibold mb-2">{symbol}</h3>
-              <div className="space-y-2">
-                <p className="text-2xl font-bold">
-                  ${data.current_price.toLocaleString()}
-                </p>
-                <p
-                  className={`text-sm ${
-                    data.price_change_24h >= 0
-                      ? 'text-green-600'
-                      : 'text-red-600'
-                  }`}
-                >
-                  {data.price_change_24h >= 0 ? '+' : ''}
-                  {data.price_change_24h.toFixed(2)}%
-                </p>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-gray-500">RSI</p>
-                    <p>{data.rsi.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">MACD</p>
-                    <p>{data.macd.toFixed(2)}</p>
-                  </div>
+    <div className="container mt-4">
+      <h2 className="mb-4">{ticker} Market Overview</h2>
+      
+      <div className="row">
+        <div className="col-md-8">
+          {marketData && (
+            <Plot
+              data={[
+                {
+                  x: marketData.dates,
+                  y: marketData.prices,
+                  type: 'scatter',
+                  mode: 'lines',
+                  name: 'Price',
+                  line: { color: '#007bff' }
+                }
+              ]}
+              layout={{
+                title: { text: 'Price History' },
+                xaxis: { title: { text: 'Date' } },
+                yaxis: { title: { text: 'Price (USD)' } },
+                margin: { t: 40 }
+              }}
+              config={{ responsive: true }}
+              style={{ height: '400px' }}
+            />
+          )}
+        </div>
+        <div className="col-md-4">
+          <div className="card">
+            <div className="card-body">
+              <h5 className="card-title">Market Information</h5>
+              {overview && (
+                <div>
+                  <p><strong>Name:</strong> {overview.name}</p>
+                  <p><strong>Symbol:</strong> {overview.symbol}</p>
+                  <p><strong>Price:</strong> ${overview.price.toFixed(2)}</p>
+                  <p><strong>Change:</strong> {overview.change.toFixed(2)} ({overview.changePercent.toFixed(2)}%)</p>
+                  <p><strong>Volume:</strong> {overview.volume.toLocaleString()}</p>
+                  <p><strong>Market Cap:</strong> ${(overview.marketCap / 1e9).toFixed(2)}B</p>
+                  <p><strong>P/E Ratio:</strong> {overview.peRatio.toFixed(2)}</p>
+                  <p><strong>EPS:</strong> ${overview.eps.toFixed(2)}</p>
+                  <p><strong>Dividend:</strong> ${overview.dividend.toFixed(2)}</p>
+                  <p><strong>Dividend Yield:</strong> {overview.dividendYield.toFixed(2)}%</p>
                 </div>
-              </div>
+              )}
             </div>
-          ))}
-      </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="card">
-          <h3 className="text-lg font-semibold mb-4">Price Chart</h3>
-          <Line data={priceChartData} />
-        </div>
-        <div className="card">
-          <h3 className="text-lg font-semibold mb-4">RSI</h3>
-          <Line data={rsiChartData} />
-        </div>
-        <div className="card lg:col-span-2">
-          <h3 className="text-lg font-semibold mb-4">MACD</h3>
-          <Line data={macdChartData} />
+          </div>
         </div>
       </div>
     </div>

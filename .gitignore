@@ -53,4 +53,5 @@ htmlcov/
 *.lof
 *.lot
 *.fls
-*.fdb_latexmk 
+*.fdb_latexmk
+node_modules/

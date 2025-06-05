@@ -1,10 +1,43 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { reportApi, Report, Article } from '../services/api';
+import { reportApi, Report as ReportType, Article } from '../services/api';
+
+const ArticleCard: React.FC<{ article: Article }> = ({ article }) => (
+  <div className="bg-white rounded shadow p-4 mb-4">
+    <h4 className="font-bold text-lg mb-1">{article.title}</h4>
+    <div className="flex items-center text-sm text-gray-500 mb-2">
+      <span>{article.source}</span>
+      <span className="mx-2 text-gray-300">•</span>
+      <span className="text-sm text-gray-500">
+        {new Date(article.publishedAt).toLocaleDateString()}
+      </span>
+    </div>
+    <div
+      className={`px-2 py-1 rounded text-sm ${
+        article.sentiment === 'positive'
+          ? 'bg-green-100 text-green-800'
+          : article.sentiment === 'negative'
+          ? 'bg-red-100 text-red-800'
+          : 'bg-gray-100 text-gray-800'
+      }`}
+    >
+      {article.sentiment}
+    </div>
+    <p className="mt-2 text-gray-700">{article.summary}</p>
+    <a
+      href={article.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-block mt-2 text-blue-600 hover:underline"
+    >
+      Read More
+    </a>
+  </div>
+);
 
 const Reports: React.FC = () => {
-  const [reports, setReports] = useState<string[]>([]);
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [reports, setReports] = useState<ReportType[]>([]);
+  const [selectedReport, setSelectedReport] = useState<ReportType | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -13,22 +46,17 @@ const Reports: React.FC = () => {
       try {
         setLoading(true);
         const response = await reportApi.getReports();
-        setReports(response.data.reports);
-        if (response.data.reports.length > 0) {
-          const reportResponse = await reportApi.getReport(
-            response.data.reports[0]
-          );
+        setReports(response.data);
+        if (response.data.length > 0) {
+          const reportResponse = await reportApi.getReport(response.data[0].date);
           setSelectedReport(reportResponse.data);
         }
-        setError(null);
       } catch (err) {
-        setError('Failed to fetch reports');
-        console.error(err);
+        setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setLoading(false);
       }
     };
-
     fetchReports();
   }, []);
 
@@ -37,147 +65,51 @@ const Reports: React.FC = () => {
       setLoading(true);
       const response = await reportApi.getReport(date);
       setSelectedReport(response.data);
-      setError(null);
     } catch (err) {
-      setError('Failed to fetch report');
-      console.error(err);
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
   };
 
-  const ArticleCard: React.FC<{ article: Article }> = ({ article }) => (
-    <div className="card">
-      <h4 className="text-lg font-semibold mb-2">{article.title}</h4>
-      <p className="text-gray-600 mb-4">{article.summary}</p>
-      <div className="flex justify-between items-center">
-        <div>
-          <span className="text-sm text-gray-500">{article.source}</span>
-          <span className="mx-2 text-gray-300">•</span>
-          <span className="text-sm text-gray-500">
-            {new Date(article.published).toLocaleDateString()}
-          </span>
-        </div>
-        <div
-          className={`px-2 py-1 rounded text-sm ${
-            article.sentiment.label === 'Positive'
-              ? 'bg-green-100 text-green-800'
-              : article.sentiment.label === 'Negative'
-              ? 'bg-red-100 text-red-800'
-              : 'bg-gray-100 text-gray-800'
-          }`}
-        >
-          {article.sentiment.label}
-        </div>
-      </div>
-    </div>
-  );
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center text-red-600 p-4">
-        <p>{error}</p>
-      </div>
-    );
-  }
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div className="alert alert-danger">Error: {error}</div>;
 
   return (
-    <div className="space-y-6">
-      {/* Report Selection */}
-      <div className="card">
-        <h2 className="text-2xl font-bold mb-4">Reports</h2>
-        <div className="flex space-x-4 overflow-x-auto pb-2">
-          {reports.map((date) => (
-            <button
-              key={date}
-              className={`btn ${
-                selectedReport?.date === date
-                  ? 'btn-primary'
-                  : 'btn-secondary'
-              }`}
-              onClick={() => handleReportSelect(date)}
-            >
-              {new Date(date).toLocaleDateString()}
-            </button>
-          ))}
-        </div>
+    <div className="container mt-4">
+      <h2 className="mb-4">Sentiment Reports</h2>
+      <div className="mb-4 flex flex-wrap gap-2">
+        {reports.map((report) => (
+          <button
+            key={report.date}
+            className={`px-4 py-2 rounded ${
+              selectedReport && selectedReport.date === report.date
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 text-gray-800'
+            }`}
+            onClick={() => handleReportSelect(report.date)}
+          >
+            {new Date(report.date).toLocaleDateString()}
+          </button>
+        ))}
       </div>
-
       {selectedReport && (
-        <>
-          {/* Report Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="card">
-              <h3 className="text-lg font-semibold mb-2">Total Articles</h3>
-              <p className="text-3xl font-bold">
-                {selectedReport.total_articles}
-              </p>
-            </div>
-            <div className="card">
-              <h3 className="text-lg font-semibold mb-2">Sources</h3>
-              <p className="text-3xl font-bold">
-                {selectedReport.sources.length}
-              </p>
-            </div>
-            <div className="card">
-              <h3 className="text-lg font-semibold mb-2">Sentiment Distribution</h3>
-              <div className="space-y-2">
-                {Object.entries(selectedReport.sentiment_distribution).map(
-                  ([label, count]) => (
-                    <div key={label} className="flex justify-between">
-                      <span>{label}</span>
-                      <span className="font-semibold">{count}</span>
-                    </div>
-                  )
-                )}
-              </div>
+        <div>
+          <div className="card mb-4">
+            <div className="card-body">
+              <h5 className="card-title">Summary</h5>
+              <p className="card-text">{selectedReport.summary}</p>
             </div>
           </div>
-
-          {/* Top Articles */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Top Positive Articles</h3>
-                <Link
-                  to={`/report/${selectedReport.date}/positive`}
-                  className="text-primary-600 hover:text-primary-700"
-                >
-                  See All
-                </Link>
+          <h3 className="mb-3">Articles</h3>
+          <div className="row">
+            {selectedReport.articles.map((article, index) => (
+              <div key={index} className="col-md-6 mb-4">
+                <ArticleCard article={article} />
               </div>
-              <div className="space-y-4">
-                {selectedReport.top_positive.map((article) => (
-                  <ArticleCard key={article.link} article={article} />
-                ))}
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Top Negative Articles</h3>
-                <Link
-                  to={`/report/${selectedReport.date}/negative`}
-                  className="text-primary-600 hover:text-primary-700"
-                >
-                  See All
-                </Link>
-              </div>
-              <div className="space-y-4">
-                {selectedReport.top_negative.map((article) => (
-                  <ArticleCard key={article.link} article={article} />
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
