@@ -1,0 +1,12 @@
+flask==3.0.2
+flask-cors==4.0.0
+yfinance==0.2.36
+pandas==2.2.1
+numpy==1.26.4
+transformers==4.38.2
+torch==2.2.1
+python-dotenv==1.0.1
+gunicorn==21.2.0
+pytest==8.0.2
+black==24.2.0
+flake8==7.0.0 

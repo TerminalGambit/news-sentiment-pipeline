@@ -1,187 +1,109 @@
-# Financial News Sentiment Analysis
+# Sentiment Analysis and Market Data Platform
 
-[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Tests](https://github.com/TerminalGambit/news-sentiment-pipeline/actions/workflows/tests.yml/badge.svg)](https://github.com/TerminalGambit/news-sentiment-pipeline/actions/workflows/tests.yml)
-[![Lint](https://github.com/TerminalGambit/news-sentiment-pipeline/actions/workflows/lint.yml/badge.svg)](https://github.com/TerminalGambit/news-sentiment-pipeline/actions/workflows/lint.yml)
-
-A Python package for analyzing sentiment in financial news articles using FinBERT.
+A full-stack application for sentiment analysis and market data visualization.
 
 ## Features
 
-- Fetches financial news from multiple RSS feeds (Yahoo Finance, CNBC, Reuters)
-- Cleans and preprocesses article text
-- Performs sentiment analysis using FinBERT
-- Saves results in both JSON and CSV formats
-- Comprehensive logging and error handling
-- Modular and extensible design
+- Sentiment analysis of text and articles
+- Market data with technical indicators (SMA, RSI, MACD)
+- Report generation and visualization
+- Real-time data updates
+- Interactive charts and graphs
 
-## Quick Start
+## Tech Stack
 
-```bash
-# Clone the repository
-git clone https://github.com/TerminalGambit/news-sentiment-pipeline.git
-cd news-sentiment-pipeline
+### Backend
+- Python 3.11
+- Flask
+- Transformers (Hugging Face)
+- Pandas & NumPy
+- yfinance
 
-# Install dependencies
-make install
+### Frontend
+- React
+- TypeScript
+- Chart.js
+- Tailwind CSS
 
-# Run the pipeline
-make run
-```
+## Prerequisites
 
-## Installation
+- Docker and Docker Compose
+- Node.js 18+ (for local development)
+- Python 3.11+ (for local development)
+
+## Setup
 
 1. Clone the repository:
-
 ```bash
-git clone https://github.com/TerminalGambit/news-sentiment-pipeline.git
-cd news-sentiment-pipeline
+git clone <repository-url>
+cd sentiment-analysis-platform
 ```
 
-2. Install dependencies using Make:
-
+2. Start the services using Docker Compose:
 ```bash
-make install
+docker-compose up -d
 ```
 
-Or for a complete development setup:
-
-```bash
-make dev
-```
-
-## Available Make Commands
-
-- `make install` - Install dependencies using pip3
-- `make clean` - Remove Python cache files and data directory
-- `make test` - Run tests
-- `make run` - Run the sentiment analysis pipeline
-- `make lint` - Run linting checks
-- `make format` - Format code using black
-- `make help` - Show all available commands
-- `make setup` - Create necessary directories
-- `make dev` - Setup development environment
-- `make venv` - Create virtual environment
-- `make update` - Update dependencies to latest versions
-
-## Usage
-
-### Basic Usage
-
-```python
-from src.pipeline import SentimentAnalysisPipeline
-
-# Initialize and run the pipeline
-pipeline = SentimentAnalysisPipeline()
-results = pipeline.run()
-```
-
-Or simply use:
-
-```bash
-make run
-```
-
-### Custom Usage
-
-```python
-from src.news_ingestion import fetch_all_feeds
-from src.text_processor import process_article
-from src.sentiment_analyzer import SentimentAnalyzer
-from src.storage import DataStorage
-
-# Fetch articles
-articles = fetch_all_feeds()
-
-# Process articles
-processed_articles = []
-for article in articles:
-    processed = process_article(article)
-    if processed:
-        processed_articles.append(processed)
-
-# Analyze sentiment
-analyzer = SentimentAnalyzer()
-results = analyzer.analyze_articles(processed_articles)
-
-# Save results
-storage = DataStorage()
-storage.save_to_json(results)
-storage.save_to_csv(results)
-```
-
-## Output Format
-
-The pipeline generates two types of output files:
-
-1. JSON file (`data/sentiment_results.json`):
-
-```json
-[
-  {
-    "title": "Article Title",
-    "summary": "Article Summary",
-    "link": "Article URL",
-    "published": "Publication Date",
-    "source": "Source URL",
-    "timestamp": "Processing Timestamp",
-    "processed_text": "Cleaned Text",
-    "sentiment": {
-      "label": "Positive/Negative/Neutral",
-      "score": 0.95
-    }
-  }
-]
-```
-
-2. CSV file (`data/sentiment_results_YYYYMMDD_HHMMSS.csv`):
-   - Contains flattened data with sentiment label and score in separate columns
-   - Includes all article metadata
-   - Timestamp in filename for historical tracking
-
-## Configuration
-
-Configuration settings can be modified in `src/config.py`:
-
-- RSS feed URLs
-- Model settings
-- File paths
-- Text preprocessing parameters
+The application will be available at:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000
 
 ## Development
 
-### Code Quality
+### Backend Development
 
-The project uses several tools to maintain code quality:
-
-- `black` for code formatting
-- `pylint` for code linting
-- `pytest` for testing
-- `pytest-cov` for test coverage
-
-Run these tools using make commands:
-
+1. Create a virtual environment:
 ```bash
-make format  # Format code
-make lint    # Run linting
-make test    # Run tests
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-### Updating Dependencies
-
-To update all dependencies to their latest versions:
-
+2. Install dependencies:
 ```bash
-make update
+pip install -r requirements.txt
 ```
 
-> **Before pushing code, always run:**
-> ```bash
-> black src/
-> ```
-> to ensure formatting compliance with the CI.
+3. Run the development server:
+```bash
+flask run
+```
+
+### Frontend Development
+
+1. Install dependencies:
+```bash
+cd frontend
+npm install
+```
+
+2. Start the development server:
+```bash
+npm start
+```
+
+## API Documentation
+
+### Market Data Endpoints
+
+- `GET /api/market/overview` - Get market overview
+- `GET /api/market/data/<symbol>` - Get market data for a symbol
+- `GET /api/market/symbols` - Get available symbols
+- `GET /api/market/timeframes` - Get available timeframes
+
+### Sentiment Analysis Endpoints
+
+- `POST /api/sentiment/analyze` - Analyze text sentiment
+- `POST /api/sentiment/analyze/batch` - Analyze multiple texts
+- `GET /api/sentiment/history` - Get analysis history
+- `POST /api/sentiment/save` - Save analysis results
+
+### Report Endpoints
+
+- `GET /api/report/reports` - Get available reports
+- `GET /api/report/reports/<date>` - Get specific report
+- `GET /api/report/reports/<date>/positive` - Get positive articles
+- `GET /api/report/reports/<date>/negative` - Get negative articles
 
 ## Contributing
 

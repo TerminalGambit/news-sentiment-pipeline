@@ -1,44 +1,54 @@
 """
 Market data API routes.
 """
-from flask import jsonify, request
+from flask import Blueprint, jsonify, request
 from ..services.market_service import MarketService
-from ..utils.response import create_response
+from ..utils.logger import get_logger
 
+logger = get_logger(__name__)
+market_bp = Blueprint("market", __name__)
 market_service = MarketService()
 
-@api_bp.route('/api/market/<ticker>', methods=['GET'])
-def get_market_overview(ticker):
-    """Get market overview data for a ticker."""
+@market_bp.route("/overview", methods=["GET"])
+def get_market_overview():
+    """Get market overview for all symbols."""
     try:
-        data = market_service.get_market_data(ticker)
-        return create_response(data=data)
+        overview = market_service.get_market_overview()
+        return jsonify(overview)
     except Exception as e:
-        return create_response(error=str(e)), 400
+        logger.error(f"Error in get_market_overview: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
-@api_bp.route('/api/market/<ticker>/sma', methods=['GET'])
-def get_sma_data(ticker):
-    """Get SMA data for a ticker."""
+@market_bp.route("/data/<symbol>", methods=["GET"])
+def get_market_data(symbol):
+    """Get market data for a specific symbol."""
     try:
-        data = market_service.get_sma_data(ticker)
-        return create_response(data=data)
+        timeframe = request.args.get("timeframe", "1mo")
+        period = request.args.get("period", "1y")
+        
+        data = market_service.get_market_data(symbol, timeframe, period)
+        if not data:
+            return jsonify({"error": f"No data found for {symbol}"}), 404
+        
+        return jsonify(data)
     except Exception as e:
-        return create_response(error=str(e)), 400
+        logger.error(f"Error in get_market_data for {symbol}: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
-@api_bp.route('/api/market/<ticker>/rsi', methods=['GET'])
-def get_rsi_data(ticker):
-    """Get RSI data for a ticker."""
+@market_bp.route("/symbols", methods=["GET"])
+def get_symbols():
+    """Get list of available symbols."""
     try:
-        data = market_service.get_rsi_data(ticker)
-        return create_response(data=data)
+        return jsonify({"symbols": market_service.symbols})
     except Exception as e:
-        return create_response(error=str(e)), 400
+        logger.error(f"Error in get_symbols: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
-@api_bp.route('/api/market/<ticker>/macd', methods=['GET'])
-def get_macd_data(ticker):
-    """Get MACD data for a ticker."""
+@market_bp.route("/timeframes", methods=["GET"])
+def get_timeframes():
+    """Get list of available timeframes."""
     try:
-        data = market_service.get_macd_data(ticker)
-        return create_response(data=data)
+        return jsonify({"timeframes": market_service.timeframes})
     except Exception as e:
-        return create_response(error=str(e)), 400 
+        logger.error(f"Error in get_timeframes: {str(e)}")
+        return jsonify({"error": str(e)}), 500 
