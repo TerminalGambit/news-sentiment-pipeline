@@ -1,45 +1,25 @@
-.PHONY: install clean test run lint format help report report-cache setup-latex web web-install finbert open-web
+# Variables
+PYTHON = python3
+VENV = venv
+PIP = $(VENV)/bin/pip
+FLASK = $(VENV)/bin/flask
+NODE = node
+NPM = npm
 
-# Python version
-PYTHON := ./venv/bin/python3.10
-PIP := ./venv/bin/pip3.10
+# Macro commands
+.PHONY: all clean install test run build docker-build docker-run
 
-# Project directories
-SRC_DIR := src
-DATA_DIR := data
-TEST_DIR := tests
-SCRIPTS_DIR := scripts
-
-# Default target
-.DEFAULT_GOAL := help
-
-help:
-	@echo "Available commands:"
-	@echo "  make install    - Install dependencies using pip3"
-	@echo "  make clean      - Remove Python cache files and data directory"
-	@echo "  make test       - Run tests"
-	@echo "  make run        - Run the sentiment analysis pipeline"
-	@echo "  make lint       - Run linting checks"
-	@echo "  make format     - Format code using black"
-	@echo "  make report     - Generate report from latest analysis"
-	@echo "  make report-cache DATE=YYYY-MM-DD - Generate report from cached data"
-	@echo "  make setup-latex - Check and install required LaTeX packages"
-	@echo "  make help       - Show this help message"
-	@echo "  make web-install - Install web dependencies"
-	@echo "  make web        - Start web interface"
-	@echo "  make finbert    - Run the FinBERT playground web app"
-	@echo "  make open-web   - Open the web app in the default browser"
-
-install:
-	@echo "Installing dependencies..."
-	$(PIP) install --upgrade pip
-	$(PIP) install feedparser beautifulsoup4 transformers torch pandas numpy python-dotenv requests tqdm
-	$(PIP) install black pylint pytest pytest-cov
-	$(PIP) install jinja2 matplotlib seaborn
-	$(PIP) install yfinance
+all: install build
 
 clean:
 	@echo "Cleaning up..."
+	rm -rf backend/$(VENV)
+	rm -rf frontend/node_modules
+	rm -rf backend/__pycache__
+	rm -rf backend/*/__pycache__
+	rm -rf backend/*/*/__pycache__
+	rm -rf backend/logs/*
+	rm -rf backend/data/*
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 	find . -type f -name "*.pyo" -delete
@@ -49,102 +29,123 @@ clean:
 	find . -type d -name "*.egg" -exec rm -rf {} +
 	find . -type d -name ".pytest_cache" -exec rm -rf {} +
 	find . -type d -name ".coverage" -exec rm -rf {} +
-	rm -rf $(DATA_DIR)/*
+	find . -type d -name "htmlcov" -exec rm -rf {} +
 
-# Add pretest target
-pretest:
-	@echo "Installing dependencies for tests..."
+install: install-backend install-frontend
+
+test: test-backend test-frontend
+
+run: run-backend run-frontend
+
+build: build-backend build-frontend
+
+docker-build:
+	@echo "Building Docker images..."
+	docker-compose build
+
+docker-run:
+	@echo "Starting Docker containers..."
+	docker-compose up -d
+
+# Micro commands for backend
+.PHONY: install-backend test-backend run-backend build-backend
+
+install-backend:
+	@echo "Installing backend dependencies..."
+	cd backend && \
+	$(PYTHON) -m venv $(VENV) && \
+	. $(VENV)/bin/activate && \
+	$(PIP) install --upgrade pip && \
 	$(PIP) install -r requirements.txt
 
-# Update test target to depend on pretest
-test: pretest
-	@echo "Running tests..."
-	$(PYTHON) -m pytest $(TEST_DIR) -v --cov=$(SRC_DIR)
+test-backend:
+	@echo "Running backend tests..."
+	cd backend && \
+	. $(VENV)/bin/activate && \
+	pytest
 
-run:
-	@echo "Running sentiment analysis pipeline..."
-	$(PYTHON) -m $(SRC_DIR).pipeline
+run-backend:
+	@echo "Starting backend server..."
+	cd backend && \
+	. $(VENV)/bin/activate && \
+	$(FLASK) run
 
-lint:
-	@echo "Running linting checks..."
-	$(PIP) install isort
-	isort $(SRC_DIR)
-	black $(SRC_DIR)
-	pylint $(SRC_DIR)
+build-backend:
+	@echo "Building backend..."
+	cd backend && \
+	. $(VENV)/bin/activate && \
+	$(PIP) install -r requirements.txt
 
-format:
-	@echo "Formatting code..."
-	black $(SRC_DIR)
+# Micro commands for frontend
+.PHONY: install-frontend test-frontend run-frontend build-frontend
 
-# Create necessary directories
-setup:
-	@echo "Setting up project structure..."
-	mkdir -p $(DATA_DIR)
-	mkdir -p $(TEST_DIR)
-	mkdir -p $(SCRIPTS_DIR)
+install-frontend:
+	@echo "Installing frontend dependencies..."
+	cd frontend && \
+	$(NPM) install
 
-# Development environment setup
-dev: setup install
-	@echo "Development environment setup complete"
+test-frontend:
+	@echo "Running frontend tests..."
+	cd frontend && \
+	$(NPM) test
 
-# Create virtual environment
-venv:
-	@echo "Creating virtual environment..."
-	$(PYTHON) -m venv venv
-	@echo "Virtual environment created. Activate it with: source venv/bin/activate"
+run-frontend:
+	@echo "Starting frontend development server..."
+	cd frontend && \
+	$(NPM) start
 
-# Update dependencies
-update:
-	@echo "Updating dependencies..."
-	$(PIP) install --upgrade feedparser beautifulsoup4 transformers torch pandas numpy python-dotenv requests tqdm
-	$(PIP) install --upgrade black pylint pytest pytest-cov
-	$(PIP) install --upgrade jinja2 matplotlib seaborn
-	$(PIP) install --upgrade yfinance
+build-frontend:
+	@echo "Building frontend..."
+	cd frontend && \
+	$(NPM) run build
 
-# Report generation
-report:
-	@echo "Generating report from latest analysis..."
-	$(PYTHON) -c "from src.report_generator import ReportGenerator; from src.storage import DataStorage; storage = DataStorage(); results = storage.load_from_json(); generator = ReportGenerator(); path = generator.generate_report(results); print(path)" > .last_report_path.tmp
-	REPORT_PATH=$$(tail -n 1 .last_report_path.tmp | grep -o 'data/reports/[^ ]*report.pdf' || true); \
-	if [ -z "$$REPORT_PATH" ]; then \
-		echo "[ERROR] Report PDF path not found. Check logs for errors."; \
-		exit 1; \
-	else \
-		echo "Opening report: $$REPORT_PATH"; \
-		open "$$REPORT_PATH"; \
-	fi
+# Development commands
+.PHONY: dev-backend dev-frontend dev
 
-report-cache:
-	@if [ -z "$(DATE)" ]; then \
-		echo "Error: DATE parameter is required. Usage: make report-cache DATE=YYYY-MM-DD"; \
-		exit 1; \
-	fi
-	@echo "Generating report from cached data for $(DATE)..."
-	$(PYTHON) -c "from src.report_generator import generate_report_from_cache; generate_report_from_cache('$(DATE)')"
+dev-backend:
+	@echo "Starting backend in development mode..."
+	cd backend && \
+	. $(VENV)/bin/activate && \
+	$(FLASK) run --debug
 
-# LaTeX setup
-setup-latex:
-	@echo "Checking and installing LaTeX packages..."
-	$(PYTHON) $(SCRIPTS_DIR)/check_latex.py
+dev-frontend:
+	@echo "Starting frontend in development mode..."
+	cd frontend && \
+	$(NPM) start
 
-web-install:
-	@echo "Installing web dependencies..."
-	$(PIP) install flask
+dev: dev-backend dev-frontend
 
-web:
-	@echo "Starting web interface..."
-	$(PYTHON) -c "from src.web_app import run_web_app; run_web_app()"
+# Docker commands
+.PHONY: docker-clean docker-logs docker-stop
 
-finbert:
-	$(PYTHON) -m src.finbert_playground
+docker-clean:
+	@echo "Cleaning up Docker containers and images..."
+	docker-compose down -v
+	docker system prune -f
 
-prelint:
-	@echo "Running prelint checks..."
-	isort $(SRC_DIR)
-	black $(SRC_DIR)
-	black --check $(SRC_DIR)
-	isort --check-only $(SRC_DIR)
-	pylint $(SRC_DIR)
+docker-logs:
+	@echo "Showing Docker logs..."
+	docker-compose logs -f
 
-open-web:
-	open http://127.0.0.1:5000/ 
+docker-stop:
+	@echo "Stopping Docker containers..."
+	docker-compose down
+
+# Help command
+.PHONY: help
+
+help:
+	@echo "Available commands:"
+	@echo "  all            - Install dependencies and build the application"
+	@echo "  clean          - Clean up all generated files and caches"
+	@echo "  install        - Install all dependencies"
+	@echo "  test           - Run all tests"
+	@echo "  run            - Run the application"
+	@echo "  build          - Build the application"
+	@echo "  docker-build   - Build Docker images"
+	@echo "  docker-run     - Run Docker containers"
+	@echo "  dev            - Run in development mode"
+	@echo "  docker-clean   - Clean up Docker resources"
+	@echo "  docker-logs    - Show Docker logs"
+	@echo "  docker-stop    - Stop Docker containers"
+	@echo "  help           - Show this help message" 
